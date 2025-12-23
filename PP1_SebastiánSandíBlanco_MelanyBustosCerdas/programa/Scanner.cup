@@ -1,0 +1,90 @@
+/* Código obtenido de la página oficial de Cup y adaptado para el proyecto */
+/* https://www2.cs.tum.edu/projects/cup/ */
+
+import java_cup.runtime.*;
+
+parser code {:
+    scanner s;
+    Parser(scanner s){ this.s=s; }
+:}
+
+init with {: s.init(); :};
+scan with {: return s.next_token(); :};
+
+/* Palabras reservadas */
+terminal WORLD;     // world
+terminal LOCAL;     // local
+terminal GIFT;      // gift
+terminal RETURN;    // return
+terminal BREAK;     // break
+
+terminal DECIDE;    // decide
+terminal OF;        // of
+terminal ELSE;      // else
+terminal END;       // end
+terminal LOOP;      // loop
+terminal EXIT;      // exit
+terminal WHEN;      // when
+terminal FOR;       // for
+
+terminal SHOW;      // show
+terminal GET;       // get
+terminal NAVIDAD;   // navidad (main)
+
+/* Tipos de datos */
+terminal INT;       // int
+terminal FLOAT;     // float
+terminal BOOL;      // bool
+terminal CHAR;      // char
+terminal STRING;    // string
+terminal COAL;      // coal (tipo del main)
+
+/* Operadores */
+terminal PLUS;      // +
+terminal MINUS;     // -
+terminal MULT;      // *
+terminal DIV;       // /
+terminal DIVENT;    // //
+terminal MOD;       // %
+terminal ELEV;      // ^
+
+terminal INC;       // ++
+terminal DEC;       // --
+
+terminal LOWTHAN;        // <
+terminal LOWEQ;        // <=
+terminal GTHAN;        // >
+terminal GEQ;        // >=
+terminal EQ;        // ==
+terminal NEQ;        // !=
+
+terminal AND;       // @
+terminal OR;        // ~
+terminal NOT;       // Σ
+
+/* Caracteres del lenguaje */
+terminal ASSIGN;    // =
+terminal LBRACE;    // ¡
+terminal RBRACE;    // !
+terminal LPAREN;    // ¿
+terminal RPAREN;    // ?
+terminal LBRACKET; // [
+terminal RBRACKET; // ]
+terminal COMMA;     // ,
+terminal ENDL;      // endl
+
+/* Literales */
+terminal Integer   INT_LITERAL;     
+terminal Double    FLOAT_LITERAL;   
+terminal String    STRING_LITERAL;  
+terminal Character CHAR_LITERAL;  
+terminal Boolean   BOOL_LITERAL;   
+
+/* Identificador */
+terminal String ID; // nombres de variables y funciones
+
+/* No terminal mínimo */
+non terminal programa;
+
+/* Producción vacía (placeholder) */
+programa ::= ;
