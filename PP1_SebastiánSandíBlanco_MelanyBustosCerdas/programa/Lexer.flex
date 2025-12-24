@@ -22,10 +22,14 @@ import java_cup.runtime.*;
   private Symbol symbol(int type, Object value) {
     return new Symbol(type, yyline, yycolumn, value);
   }
+  private void reportError(String message) {
+      System.err.println("Error léxico en línea " + (yyline+1) + ", columna " + (yycolumn+1) + ": " + message);
+  }
 %}
 
 /* Definiciones regulares */
 LineTerminator = \r|\n|\r\n
+InputCharacter = [^\r\n]
 WhiteSpace     = [ \t\f] | {LineTerminator}
 Identifier     = [a-zA-Z][a-zA-Z0-9_]*
 Integer        = 0 | [1-9][0-9]*
@@ -42,70 +46,70 @@ MultiLineComment  = "є" [^"э"]* "э"
 
 <YYINITIAL> {
   /* Palabras reservadas */
-  "world"           { return symbol(sym.WORLD); }
-  "local"           { return symbol(sym.LOCAL); }
-  "gift"            { return symbol(sym.GIFT); }
-  "navidad"         { return symbol(sym.NAVIDAD); }
-  "show"            { return symbol(sym.SHOW); }
-  "get"             { return symbol(sym.GET); }
-  "endl"            { return symbol(sym.ENDL); }
-  "coal"            { return symbol(sym.COAL); }
-  "return"          { return symbol(sym.RETURN); }
-  "break"           { return symbol(sym.BREAK); }
+  "world"           { return symbol(sym.WORLD, yytext()); }
+  "local"           { return symbol(sym.LOCAL, yytext()); }
+  "gift"            { return symbol(sym.GIFT, yytext()); }
+  "navidad"         { return symbol(sym.NAVIDAD, yytext()); }
+  "show"            { return symbol(sym.SHOW, yytext()); }
+  "get"             { return symbol(sym.GET, yytext()); }
+  "endl"            { return symbol(sym.ENDL, yytext()); }
+  "coal"            { return symbol(sym.COAL, yytext()); }
+  "return"          { return symbol(sym.RETURN, yytext()); }
+  "break"           { return symbol(sym.BREAK, yytext()); }
 
   /* Estructuras de control */
-  "decide"          { return symbol(sym.DECIDE); }
-  "of"              { return symbol(sym.OF); }
-  "else"            { return symbol(sym.ELSE); }
-  "end"             { return symbol(sym.END); }
-  "loop"            { return symbol(sym.LOOP); }
-  "exit"            { return symbol(sym.EXIT); }
-  "when"            { return symbol(sym.WHEN); }
-  "for"             { return symbol(sym.FOR); }
+  "decide"          { return symbol(sym.DECIDE, yytext()); }
+  "of"              { return symbol(sym.OF, yytext()); }
+  "else"            { return symbol(sym.ELSE, yytext()); }
+  "end"             { return symbol(sym.END, yytext()); }
+  "loop"            { return symbol(sym.LOOP, yytext()); }
+  "exit"            { return symbol(sym.EXIT, yytext()); }
+  "when"            { return symbol(sym.WHEN, yytext()); }
+  "for"             { return symbol(sym.FOR, yytext()); }
 
   /* Tipos de datos */
-  "entero"          { return symbol(sym.INT); }
-  "flotante"        { return symbol(sym.FLOAT); }
-  "boolean"         { return symbol(sym.BOOL); }
-  "char"            { return symbol(sym.CHAR); }
-  "string"          { return symbol(sym.STRING); }
+  "entero"          { return symbol(sym.INT, yytext()); }
+  "flotante"        { return symbol(sym.FLOAT, yytext()); }
+  "boolean"         { return symbol(sym.BOOL, yytext()); }
+  "char"            { return symbol(sym.CHAR, yytext()); }
+  "string"          { return symbol(sym.STRING, yytext()); }
 
   /* Agrupadores */
-  "¿"               { return symbol(sym.LPAREN); }
-  "?"               { return symbol(sym.RPAREN); }
-  "¡"               { return symbol(sym.LBRACE); }
-  "!"               { return symbol(sym.RBRACE); }
+  "¿"               { return symbol(sym.LPAREN, yytext()); }
+  "?"               { return symbol(sym.RPAREN, yytext()); }
+  "¡"               { return symbol(sym.LBRACE, yytext()); }
+  "!"               { return symbol(sym.RBRACE, yytext()); }
 
   /* Operadores */
-  "->"              { return symbol(sym.ARROW); }
-  "+"               { return symbol(sym.PLUS); }
-  "-"               { return symbol(sym.MINUS); }
-  "//"              { return symbol(sym.DIVENT); }
-  "/"               { return symbol(sym.DIV); }
-  "*"               { return symbol(sym.MULT); }
-  "%"               { return symbol(sym.MOD); }
-  "^"               { return symbol(sym.ELEV); }
-  "++"              { return symbol(sym.INC); }
-  "--"              { return symbol(sym.DEC); }
-  "@"               { return symbol(sym.AND); }
-  "~"               { return symbol(sym.OR); }
-  "Σ"               { return symbol(sym.NOT); }
-  "->"              { return symbol(sym.ARROW); }
-  "="               { return symbol(sym.ASSIGN); }
+  "->"              { return symbol(sym.ARROW, yytext()); }
+  "+"               { return symbol(sym.PLUS, yytext()); }
+  "-"               { return symbol(sym.MINUS, yytext()); }
+  "//"              { return symbol(sym.DIVENT, yytext()); }
+  "/"               { return symbol(sym.DIV, yytext()); }
+  "*"               { return symbol(sym.MULT, yytext()); }
+  "%"               { return symbol(sym.MOD, yytext()); }
+  "^"               { return symbol(sym.ELEV, yytext()); }
+  "++"              { return symbol(sym.INC, yytext()); }
+  "--"              { return symbol(sym.DEC, yytext()); }
+  "@"               { return symbol(sym.AND, yytext()); }
+  "~"               { return symbol(sym.OR, yytext()); }
+  "Σ"               { return symbol(sym.NOT, yytext()); }
+  "->"              { return symbol(sym.ARROW, yytext()); }
+  "="               { return symbol(sym.ASSIGN, yytext()); }
 
   /* Operadores relacionales */
-  "<="              { return symbol(sym.LOWEQ); }
-  ">="              { return symbol(sym.GEQ); }
-  "<"               { return symbol(sym.LOWTHAN); }
-  ">"               { return symbol(sym.GTHAN); }
-  "=="              { return symbol(sym.EQ); }
-  "!="              { return symbol(sym.NEQ); }
+  "<="              { return symbol(sym.LOWEQ, yytext()); }
+  ">="              { return symbol(sym.GEQ, yytext()); }
+  "<"               { return symbol(sym.LOWTHAN, yytext()); }
+  ">"               { return symbol(sym.GTHAN, yytext()); }
+  "=="              { return symbol(sym.EQ, yytext()); }
+  "!="              { return symbol(sym.NEQ, yytext()); }
 
   /* Identificadores y Literales */
   {Identifier}      { return symbol(sym.ID, yytext()); }
-  {Integer}         { return symbol(sym.INT_LITERAL, Integer.parseInt(yytext())); }
-  {Float}           { return symbol(sym.FLOAT_LITERAL, Double.parseDouble(yytext())); }
-  {String}          { return symbol(sym.STRING_LITERAL, yytext().substring(1, yytext().length()-1)); }
+  {Integer}         { return symbol(sym.INT_LITERAL, Integer.parseInt(yytext().toString())); }
+  {Float}           { return symbol(sym.FLOAT_LITERAL, Double.parseDouble(yytext().toString())); }
+  {String}          { return symbol(sym.STRING_LITERAL, yytext().toString().substring(1, yytext().length()-1)); }
   "true"            { return symbol(sym.BOOL_LITERAL, true); }
   "false"           { return symbol(sym.BOOL_LITERAL, false); }
 
@@ -113,4 +117,9 @@ MultiLineComment  = "є" [^"э"]* "э"
   {SingleLineComment} { /* Ignorar */ }
   {MultiLineComment}  { /* Ignorar */ }
   {WhiteSpace}        { /* Ignorar */ }
+}
+
+/* Manejo de Errores: Modo Pánico  */
+[^] {
+  reportError("Caracter ilegal <" + yytext() + ">");
 }
