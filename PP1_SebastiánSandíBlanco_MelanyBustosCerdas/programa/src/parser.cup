@@ -1,6 +1,6 @@
 /* Código obtenido de la página oficial de Cup y adaptado para el proyecto */
 /* https://www2.cs.tum.edu/projects/cup/ */
-
+package generados;
 import java_cup.runtime.*;
 
 /* Palabras reservadas */

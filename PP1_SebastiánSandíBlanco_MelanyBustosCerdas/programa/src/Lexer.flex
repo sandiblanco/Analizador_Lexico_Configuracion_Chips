@@ -3,7 +3,7 @@ CURSO: Compiladores e Intérpretes
 PROYECTO #1: Análisis Léxico
 ESTUDIANTES: Sebastián Sandí Blanco y Melany Bustos Cerdas
 */
-
+package generados;
 import java_cup.runtime.*;
 
 %%
@@ -106,12 +106,12 @@ MultiLineComment  = "є" [^"э"]* "э"
   "!="              { return symbol(sym.NEQ, yytext()); }
 
   /* Identificadores y Literales */
+  "true"            { return symbol(sym.BOOL_LITERAL, true); }
+  "false"           { return symbol(sym.BOOL_LITERAL, false); }
   {Identifier}      { return symbol(sym.ID, yytext()); }
   {Integer}         { return symbol(sym.INT_LITERAL, Integer.parseInt(yytext().toString())); }
   {Float}           { return symbol(sym.FLOAT_LITERAL, Double.parseDouble(yytext().toString())); }
   {String}          { return symbol(sym.STRING_LITERAL, yytext().toString().substring(1, yytext().length()-1)); }
-  "true"            { return symbol(sym.BOOL_LITERAL, true); }
-  "false"           { return symbol(sym.BOOL_LITERAL, false); }
 
   /* Comentarios y Espacios */
   {SingleLineComment} { /* Ignorar */ }
