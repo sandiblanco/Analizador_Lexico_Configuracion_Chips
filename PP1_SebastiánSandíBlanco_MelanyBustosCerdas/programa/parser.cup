@@ -4,67 +4,67 @@
 import java_cup.runtime.*;
 
 /* Palabras reservadas */
-terminal WORLD;     // world
-terminal LOCAL;     // local
-terminal GIFT;      // gift
-terminal RETURN;    // return
-terminal BREAK;     // break
+terminal String WORLD;     // world
+terminal String LOCAL;     // local
+terminal String GIFT;      // gift
+terminal String RETURN;    // return
+terminal String BREAK;     // break
 
-terminal DECIDE;    // decide
-terminal OF;        // of
-terminal ELSE;      // else
-terminal END;       // end
-terminal LOOP;      // loop
-terminal EXIT;      // exit
-terminal WHEN;      // when
-terminal FOR;       // for
+terminal String DECIDE;    // decide
+terminal String OF;        // of
+terminal String ELSE;      // else
+terminal String END;       // end
+terminal String LOOP;      // loop
+terminal String EXIT;      // exit
+terminal String WHEN;      // when
+terminal String FOR;       // for
 
-terminal SHOW;      // show
-terminal GET;       // get
-terminal NAVIDAD;   // navidad (main)
+terminal String SHOW;      // show
+terminal String GET;       // get
+terminal String NAVIDAD;   // navidad (main)
 
 /* Tipos de datos */
-terminal INT;       // int
-terminal FLOAT;     // float
-terminal BOOL;      // bool
-terminal CHAR;      // char
-terminal STRING;    // string
-terminal COAL;      // coal (tipo del main)
+terminal String INT;       // int
+terminal String FLOAT;     // float
+terminal String BOOL;      // bool
+terminal String CHAR;      // char
+terminal String STRING;    // string
+terminal String COAL;      // coal (tipo del main)
 
 /* Operadores */
-terminal PLUS;      // +
-terminal MINUS;     // -
-terminal MULT;      // *
-terminal DIV;       // /
-terminal DIVENT;    // //
-terminal MOD;       // %
-terminal ELEV;      // ^
+terminal String PLUS;      // +
+terminal String MINUS;     // -
+terminal String MULT;      // *
+terminal String DIV;       // /
+terminal String DIVENT;    // //
+terminal String MOD;       // %
+terminal String ELEV;      // ^
 
-terminal INC;       // ++
-terminal DEC;       // --
+terminal String INC;       // ++
+terminal String DEC;       // --
 
-terminal LOWTHAN;        // <
-terminal LOWEQ;        // <=
-terminal GTHAN;        // >
-terminal GEQ;        // >=
-terminal EQ;        // ==
-terminal NEQ;        // !=
+terminal String LOWTHAN;        // <
+terminal String LOWEQ;        // <=
+terminal String GTHAN;        // >
+terminal String GEQ;        // >=
+terminal String EQ;        // ==
+terminal String NEQ;        // !=
 
-terminal AND;       // @
-terminal OR;        // ~
-terminal NOT;       // Σ
-terminal ARROW;
+terminal String AND;       // @
+terminal String OR;        // ~
+terminal String NOT;       // Σ
+terminal String ARROW;
 
 /* Caracteres del lenguaje */
-terminal ASSIGN;    // =
-terminal LBRACE;    // ¡
-terminal RBRACE;    // !
-terminal LPAREN;    // ¿
-terminal RPAREN;    // ?
-terminal LBRACKET; // [
-terminal RBRACKET; // ]
-terminal COMMA;     // ,
-terminal ENDL;      // endl
+terminal String ASSIGN;    // =
+terminal String LBRACE;    // ¡
+terminal String RBRACE;    // !
+terminal String LPAREN;    // ¿
+terminal String RPAREN;    // ?
+terminal String LBRACKET; // [
+terminal String RBRACKET; // ]
+terminal String COMMA;     // ,
+terminal String ENDL;      // endl
 
 /* Literales */
 terminal Integer   INT_LITERAL;     
