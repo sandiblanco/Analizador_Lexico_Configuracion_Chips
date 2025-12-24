@@ -1,5 +1,4 @@
 import java.io.*;
-
 import java_cup.runtime.Symbol;
 
 public class main {
