@@ -25,12 +25,46 @@ public class Main {
             System.out.println("Iniciando analisis lexico de: " + archivoFuente);
             writer.write("REPORTE DE TOKENS ENCONTRADOS\n");
             writer.write("====================================\n");
+            while (true) {
+                Symbol token = scanner.next_token();
+
+                // sym.EOF es el fin de archivo (generado automáticamente)
+                if (token.sym == sym.EOF) {
+                    break;
+                }
+
+                // Obtener nombre del token desde la clase sym usando reflexión o mapeo manual
+                String nombreToken = obtenerNombreToken(token.sym);
+                String lexema = (token.value != null)? token.value.toString() : "N/A";
+
+                String resultado = String.format("Token: %-15s | Lexema: %-15s | Línea: %d | Columna: %d",
+                        nombreToken, lexema, token.left + 1, token.right + 1);
+
+                System.out.println(resultado);
+                writer.write(resultado + "\n");
+            }
+
             writer.close();
+            System.out.println("\nAnalisis finalizado. Resultados guardados en: " + archivoSalida);
 
-        } catch (UnsupportedEncodingException | FileNotFoundException e) {
-            throw new RuntimeException(e);
+        } catch (FileNotFoundException e) {
+            System.err.println("Error: No se encontro el archivo fuente.");
+        } catch (IOException e) {
+            System.err.println("Error de lectura/escritura: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error inesperado: " + e.getMessage());
         }
+    }
 
-        System.out.println("Fin del Análisis léxico");
+    // Método auxiliar para traducir el ID numérico al nombre del token
+    private static String obtenerNombreToken(int id) {
+        try {
+            java.lang.reflect.Field[] fields = sym.class.getFields();
+            for (java.lang.reflect.Field field : fields) {
+                if (field.getInt(null) == id) return field.getName();
+            }
+        } catch (Exception e) { return "UNKNOWN"; }
+        return "UNKNOWN";
     }
 }
+
