@@ -83,14 +83,6 @@ MultiLineComment  = "є" [^"э"]* "э"
   "->"              { return symbol(sym.ARROW); }
   "="               { return symbol(sym.ASSIGN); }
 
-  /* Relacionales */
-  "<="              { return symbol(sym.LOWEQ); }
-  ">="              { return symbol(sym.GEQ); }
-  "<"               { return symbol(sym.LOWTHAN); }
-  ">"               { return symbol(sym.GTHAN); }
-  "=="              { return symbol(sym.EQ); }
-  "!="              { return symbol(sym.NEQ); }
-
   /* Comentarios y Espacios */
   {SingleLineComment} { /* Ignorar */ }
   {MultiLineComment}  { /* Ignorar */ }
