@@ -53,6 +53,16 @@ MultiLineComment  = "є" [^"э"]* "э"
   "return"          { return symbol(sym.RETURN); }
   "break"           { return symbol(sym.BREAK); }
 
+  /* Estructuras de control */
+  "decide"          { return symbol(sym.DECIDE); }
+  "of"              { return symbol(sym.OF); }
+  "else"            { return symbol(sym.ELSE); }
+  "end"             { return symbol(sym.END); }
+  "loop"            { return symbol(sym.LOOP); }
+  "exit"            { return symbol(sym.EXIT); }
+  "when"            { return symbol(sym.WHEN); }
+  "for"             { return symbol(sym.FOR); }
+
   /* Tipos de datos */
   "entero"          { return symbol(sym.INT); }
   "flotante"        { return symbol(sym.FLOAT); }
@@ -82,6 +92,22 @@ MultiLineComment  = "є" [^"э"]* "э"
   "Σ"               { return symbol(sym.NOT); }
   "->"              { return symbol(sym.ARROW); }
   "="               { return symbol(sym.ASSIGN); }
+
+  /* Operadores relacionales */
+  "<="              { return symbol(sym.LOWEQ); }
+  ">="              { return symbol(sym.GEQ); }
+  "<"               { return symbol(sym.LOWTHAN); }
+  ">"               { return symbol(sym.GTHAN); }
+  "=="              { return symbol(sym.EQ); }
+  "!="              { return symbol(sym.NEQ); }
+
+  /* Identificadores y Literales */
+  {Identifier}      { return symbol(sym.ID, yytext()); }
+  {Integer}         { return symbol(sym.INT_LITERAL, Integer.parseInt(yytext())); }
+  {Float}           { return symbol(sym.FLOAT_LITERAL, Double.parseDouble(yytext())); }
+  {String}          { return symbol(sym.STRING_LITERAL, yytext().substring(1, yytext().length()-1)); }
+  "true"            { return symbol(sym.BOOL_LITERAL, true); }
+  "false"           { return symbol(sym.BOOL_LITERAL, false); }
 
   /* Comentarios y Espacios */
   {SingleLineComment} { /* Ignorar */ }
