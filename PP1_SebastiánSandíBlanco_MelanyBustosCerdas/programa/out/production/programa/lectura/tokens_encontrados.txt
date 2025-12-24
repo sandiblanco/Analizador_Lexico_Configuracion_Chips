@@ -1,7 +1,0 @@
-REPORTE DE TOKENS ENCONTRADOS
-====================================
-Token: ID              | Lexema: nadaquever      | Línea: 1 | Columna: 1
-Token: ID              | Lexema: x               | Línea: 1 | Columna: 12
-Token: ASSIGN          | Lexema: =               | Línea: 1 | Columna: 14
-Token: INC             | Lexema: ++              | Línea: 1 | Columna: 16
-Token: ID              | Lexema: x               | Línea: 1 | Columna: 18
