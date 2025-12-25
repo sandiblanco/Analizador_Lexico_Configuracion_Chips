@@ -105,6 +105,30 @@ MultiLineComment  = "є" [^"э"]* "э"
   "=="              { return symbol(sym.EQ, yytext()); }
   "!="              { return symbol(sym.NEQ, yytext()); }
 
+/* ----------- Manejo de Errores: Modo Pánico -----------  */
+
+  // Identificadores no válidos
+  {Integer}{Identifier} {
+    reportError("Identificador inválido: no puede iniciar con números <" + yytext() + ">");
+  }
+  {Float}{Identifier} {
+    reportError("Identificador inválido: no puede iniciar con flotantes <" + yytext() + ">");
+  }
+
+  // Errores con floats
+  {Integer}\. {
+      reportError("Número flotante incompleto o mal formado <" + yytext() + ">");
+  }
+  {Float}"."{Integer} { reportError("Número flotante con demasiados puntos decimales <" + yytext() + ">"); }
+
+  // Errores con strings
+  \" [^\"\r\n]* { reportError("Cadena de texto (string) sin cerrar al final de la línea"); }
+
+  // Problemas con comentarios
+  \"[^\"\r\n]* {
+      reportError("Cadena de texto sin cerrar al final de la línea");
+  }
+
   /* Identificadores y Literales */
   "true"            { return symbol(sym.BOOL_LITERAL, true); }
   "false"           { return symbol(sym.BOOL_LITERAL, false); }
