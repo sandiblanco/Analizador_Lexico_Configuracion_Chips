@@ -35,7 +35,7 @@ Identifier     = [a-zA-Z][a-zA-Z0-9_]*
 Integer        = 0 | [1-9][0-9]*
 Float          = [0-9]+ \. [0-9]+
 String         = \"[^\"]*\"
-Char           = '([^'\\\\]|\\\\.)'
+Char           = "'"([^'\\\\]|\\\\.)"'"
 
 /* Comentarios */
 SingleLineComment = "|" [^\r\n]*
@@ -68,8 +68,8 @@ MultiLineComment  = "є" [^"э"]* "э"
   "for"             { return symbol(sym.FOR, yytext()); }
 
   /* Tipos de datos */
-  "entero"          { return symbol(sym.INT, yytext()); }
-  "flotante"        { return symbol(sym.FLOAT, yytext()); }
+  "int"          { return symbol(sym.INT, yytext()); }
+  "float"        { return symbol(sym.FLOAT, yytext()); }
   "boolean"         { return symbol(sym.BOOL, yytext()); }
   "char"            { return symbol(sym.CHAR, yytext()); }
   "string"          { return symbol(sym.STRING, yytext()); }
@@ -112,7 +112,7 @@ MultiLineComment  = "є" [^"э"]* "э"
   {Integer}         { return symbol(sym.INT_LITERAL, Integer.parseInt(yytext().toString())); }
   {Float}           { return symbol(sym.FLOAT_LITERAL, Double.parseDouble(yytext().toString())); }
   {String}          { return symbol(sym.STRING_LITERAL, yytext().toString().substring(1, yytext().length()-1)); }
-
+  {Char}            { return symbol(sym.CHAR_LITERAL, yytext().toString().substring(1, yytext().length()-1));}
   /* Comentarios y Espacios */
   {SingleLineComment} { /* Ignorar */ }
   {MultiLineComment}  { /* Ignorar */ }
