@@ -28,6 +28,8 @@ public class Main {
             writer.write("REPORTE DE TOKENS ENCONTRADOS\n");
             writer.write("====================================\n");
 
+            int contadorLexemas = 0;
+
             while (true) {
                 Symbol token = scanner.next_token();
 
@@ -36,19 +38,24 @@ public class Main {
                     break;
                 }
 
-                // Obtener nombre del token desde la clase sym usando reflexión o mapeo manual
+                // Obtener nombre del token desde la clase sym
                 String nombreToken = obtenerNombreToken(token.sym);
-                String lexema = (token.value != null)? token.value.toString() : "N/A";
+                String lexema = (token.value != null) ? token.value.toString() : "N/A";
 
                 String resultado = String.format("Token: %-15s | Lexema: %-15s | Línea: %d | Columna: %d",
                         nombreToken, lexema, token.left + 1, token.right + 1);
 
                 System.out.println(resultado);
                 writer.write(resultado + "\n");
+
+                //Aumentar el contador de lexemas
+                contadorLexemas++;
             }
 
             writer.close();
-            System.out.println("\nAnalisis finalizado. Resultados guardados en: " + archivoSalida);
+
+            System.out.println("\nCantidad de lexemas encontrados: " + contadorLexemas);
+            System.out.println("Analisis finalizado. Resultados guardados en: " + archivoSalida);
 
         } catch (FileNotFoundException e) {
             System.err.println("Error: No se encontro el archivo fuente.");
@@ -70,4 +77,3 @@ public class Main {
         return "UNKNOWN";
     }
 }
-
