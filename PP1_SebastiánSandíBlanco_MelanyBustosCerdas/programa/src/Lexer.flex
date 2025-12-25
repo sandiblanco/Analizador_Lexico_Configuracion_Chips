@@ -113,6 +113,7 @@ MultiLineComment  = "є" [^"э"]* "э"
   {Float}           { return symbol(sym.FLOAT_LITERAL, Double.parseDouble(yytext().toString())); }
   {String}          { return symbol(sym.STRING_LITERAL, yytext().toString().substring(1, yytext().length()-1)); }
   {Char}            { return symbol(sym.CHAR_LITERAL, yytext().toString().substring(1, yytext().length()-1));}
+
   /* Comentarios y Espacios */
   {SingleLineComment} { /* Ignorar */ }
   {MultiLineComment}  { /* Ignorar */ }
