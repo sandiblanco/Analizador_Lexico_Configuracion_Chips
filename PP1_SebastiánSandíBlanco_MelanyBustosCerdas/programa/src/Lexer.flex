@@ -80,6 +80,12 @@ MultiLineComment  = "є" [^"э"]* "э"
   "¡"               { return symbol(sym.LBRACE, yytext()); }
   "!"               { return symbol(sym.RBRACE, yytext()); }
 
+  // Coma
+  ","               { return symbol(sym.COMMA, yytext()); }
+
+  "["               { return symbol(sym.LBRACKET, yytext()); }
+  "]"               { return symbol(sym.RBRACKET, yytext()); }
+
   /* Operadores */
   "->"              { return symbol(sym.ARROW, yytext()); }
   "+"               { return symbol(sym.PLUS, yytext()); }
