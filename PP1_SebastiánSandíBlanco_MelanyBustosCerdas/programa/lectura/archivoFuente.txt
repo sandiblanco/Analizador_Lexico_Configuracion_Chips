@@ -1,1 +1,41 @@
-nadaquever x = ++x
+| --- Programa de prueba funcional Proyecto #1 ---
+| Autores: Sebastian Sandi y Melany Bustos
+
+world tasa_cambio = 540.50 endl
+world nombre_app = "TEC Compiler" endl
+
+gift calcularInteres ¿float monto, int años? i
+    local resultado = monto * 0.15 * años endl
+    return resultado endl
+!
+
+coal navidad ¿? i
+    local saldo_inicial = 1000 endl
+    local es_valido = true endl
+    local categoria = 'A' endl
+
+    | Prueba de estructuras de control y operadores lógicos
+    decide of
+        ¿saldo_inicial >= 500 @ es_valido? -> i
+            show "Saldo suficiente" endl
+        !
+        else -> i
+            show "Revisar cuenta" endl
+        !
+    end decide endl
+
+    | Prueba de bucle y operadores aritméticos
+    local contador = 0 endl
+    loop
+        i
+        contador = contador + 1 endl
+        show "Iteracion" endl
+
+        exit when ¿contador == 10 ~ Σ es_valido? endl
+    ! end loop endl
+
+    | Llamada a función (gift)
+    local pago = gift calcularInteres ¿5000.0, 2? endl
+
+    return 0 endl
+!
