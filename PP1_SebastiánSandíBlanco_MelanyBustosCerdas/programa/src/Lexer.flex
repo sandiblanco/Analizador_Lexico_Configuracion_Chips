@@ -2,7 +2,16 @@
 CURSO: Compiladores e Intérpretes
 PROYECTO #1: Análisis Léxico
 ESTUDIANTES: Sebastián Sandí Blanco y Melany Bustos Cerdas
-*/
+ARCHIVO: Lexer.flex
+
+OBJETIVO: Realizar el análisis léxico del lenguaje según la gramática establecida
+ENTRADA: Archivo de texto (.txt) con código fuente
+SALIDA: Objetos Symbol (tokens) para el analizador sintáctico
+RESTRICCIONES:
+- Manejo de errores mediante modo pánico
+- Soporte para caracteres especiales (Σ, ¿, ¡, є, э)
+ */
+
 package generados;
 import java_cup.runtime.*;
 

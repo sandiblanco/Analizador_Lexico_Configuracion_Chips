@@ -1,5 +1,19 @@
-/* Código obtenido de la página oficial de Cup y adaptado para el proyecto */
-/* https://www2.cs.tum.edu/projects/cup/ */
+/*
+CURSO: Compiladores e Intérpretes
+PROYECTO #1: Análisis Léxico
+ESTUDIANTES: Sebastián Sandí Blanco y Melany Bustos Cerdas
+ARCHIVO: parser.cup
+
+OBJETIVO: Definir la gramática del lenguaje
+ENTRADA: Especificaciones de terminales y no terminales
+SALIDA: Clase java con constantes enteras que representan cada token
+RESTRICCIONES:
+- Solo se definen los terminales en esta fase del proyecto, no producciones
+- Incluye una producción mínima para permitir la generación de código
+
+Código obtenido de la página oficial de Cup y adaptado para el proyecto
+https://www2.cs.tum.edu/projects/cup/ */
+
 package generados;
 import java_cup.runtime.*;
 

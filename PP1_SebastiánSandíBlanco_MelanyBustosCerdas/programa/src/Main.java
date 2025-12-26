@@ -2,6 +2,13 @@
 CURSO: Compiladores e Intérpretes
 PROYECTO #1: Análisis Léxico
 ESTUDIANTES: Sebastián Sandí Blanco y Melany Bustos Cerdas
+ARCHIVO: Main.java
+
+OBJETIVO: Coordinar el análisis léxico, leer el archivo fuente y generar el reporte de tokens
+ENTRADA: Archivo 'lectura/archivoFuente.txt' o 'lectura/pruebaErrores.txt'
+SALIDA: Archivo 'lectura/tokens_encontrados.txt' con el detalle de lexemas, líneas y columnas
+RESTRICCIONES:
+- Requiere que los archivos generados (Scanner, parser y sym) estén en la carpeta "generados"
 */
 
 import java.io.*;
@@ -14,6 +21,7 @@ public class Main {
 
         //archivos de texto
         String archivoFuente = "lectura/archivoFuente.txt";
+        String archivoDeErrores = "lectura/pruebaErrores.txt";
         String archivoSalida = "lectura/tokens_encontrados.txt";
 
         try {
@@ -24,7 +32,7 @@ public class Main {
                     new OutputStreamWriter(new FileOutputStream(archivoSalida), "UTF-8")
             );
 
-            System.out.println("Iniciando analisis lexico de: " + archivoFuente);
+            System.out.println("Iniciando análisis léxico de: " + archivoFuente);
             writer.write("REPORTE DE TOKENS ENCONTRADOS\n");
             writer.write("====================================\n");
 
@@ -55,10 +63,10 @@ public class Main {
             writer.close();
 
             System.out.println("\nCantidad de lexemas encontrados: " + contadorLexemas);
-            System.out.println("Analisis finalizado. Resultados guardados en: " + archivoSalida);
+            System.out.println("Análisis finalizado. Resultados guardados en: " + archivoSalida);
 
         } catch (FileNotFoundException e) {
-            System.err.println("Error: No se encontro el archivo fuente.");
+            System.err.println("Error: No se encontró el archivo fuente.");
         } catch (IOException e) {
             System.err.println("Error de lectura/escritura: " + e.getMessage());
         } catch (Exception e) {

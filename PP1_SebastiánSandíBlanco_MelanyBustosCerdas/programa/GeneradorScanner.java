@@ -1,3 +1,15 @@
+/*
+CURSO: Compiladores e Intérpretes
+PROYECTO #1: Análisis Léxico
+ESTUDIANTES: Sebastián Sandí Blanco y Melany Bustos Cerdas
+ARCHIVO: GeneradorScanner.java
+
+OBJETIVO: Automatizar la generación de las clases Java a partir de archivos .flex y .cup
+ENTRADA: Archivos 'Lexer.flex' y 'parser.cup'
+SALIDA: Clases 'Scanner.java', 'parser.java' y 'sym.java' en la carpeta 'generados/'
+RESTRICCIONES:
+- Requiere las librerías jflex-full-1.9.1.jar y java-cup-11b.jar en la carpeta 'lib/'
+ */
 import java.io.File;
 
 public class GeneradorScanner {
