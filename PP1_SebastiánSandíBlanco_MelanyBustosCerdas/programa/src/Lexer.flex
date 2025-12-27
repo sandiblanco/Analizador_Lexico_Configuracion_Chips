@@ -139,11 +139,6 @@ MultiLineComment  = "є" [^"э"]* "э"
   // Errores con strings
   \" [^\"\r\n]* { reportError("Cadena de texto (string) sin cerrar al final de la línea"); }
 
-  // Problemas con comentarios
-  \"[^\"\r\n]* {
-      reportError("Cadena de texto sin cerrar al final de la línea");
-  }
-
   /* Identificadores y Literales */
   "true"            { return symbol(sym.BOOL_LITERAL, true); }
   "false"           { return symbol(sym.BOOL_LITERAL, false); }
