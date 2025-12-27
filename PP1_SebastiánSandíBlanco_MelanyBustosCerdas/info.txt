@@ -12,4 +12,6 @@ Fecha de entrega: 26/12/2025
 
 Estatus de la entrega: Excelente
 
+Enlace repositorio: https://github.com/sandiblanco/Analizador_Lexico_Configuracion_Chips/tree/main
+
 
