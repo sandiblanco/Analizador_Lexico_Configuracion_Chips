@@ -1,0 +1,27 @@
+world x = 10 endl
+
+gift suma ¿int a, int b? i
+    return a + b endl
+!
+
+coal navidad ¿? i
+    local x = 10 endl
+    local mensaje = "Hola" endl
+    local check = true endl
+
+    decide of
+        ¿x > 5? -> i
+            show mensaje endl
+        !
+        else -> i
+            show "Menor" endl
+        !
+    end decide endl
+
+    loop i
+        x = x - 1 endl
+        exit when ¿x == 0? endl
+    ! end loop endl
+
+    return 0 endl
+!

@@ -1,0 +1,14 @@
+| --- Prueba de Errores Léxicos ---
+
+world 10variable = 5 endl    | Error: ID inicia con número
+local $precio = 100 endl     | Error: Carácter ilegal $
+local pi = 3. endl           | Error: Flotante incompleto
+local error_float = 3.14.15  | Error: Demasiados puntos
+
+local saludo = "Hola mundo   | Error: String sin cerrar
+show  endl
+
+| Símbolos no permitidos en el alfabeto del proyecto
+# & { }
+
+local var_valida = 20 endl   | Esto debe leerse bien después de los errores

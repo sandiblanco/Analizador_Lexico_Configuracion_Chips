@@ -1,0 +1,87 @@
+/*
+CURSO: Compiladores e Intérpretes
+PROYECTO #1: Análisis Léxico
+ESTUDIANTES: Sebastián Sandí Blanco y Melany Bustos Cerdas
+ARCHIVO: Main.java
+
+OBJETIVO: Coordinar el análisis léxico, leer el archivo fuente y generar el reporte de tokens
+ENTRADA: Archivo 'lectura/archivoFuente.txt' o 'lectura/pruebaErrores.txt'
+SALIDA: Archivo 'lectura/tokens_encontrados.txt' con el detalle de lexemas, líneas y columnas
+RESTRICCIONES:
+- Requiere que los archivos generados (Scanner, parser y sym) estén en la carpeta "generados"
+*/
+
+import java.io.*;
+import java_cup.runtime.Symbol;
+import generados.Scanner;
+import generados.sym;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+
+        //archivos de texto
+        String archivoFuente = "lectura/archivoFuente.txt";
+        String archivoDeErrores = "lectura/pruebaErrores.txt";
+        String archivoSalida = "lectura/tokens_encontrados.txt";
+
+        try {
+            Reader lectorArchivo = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(archivoDeErrores), "UTF-8"));
+            Scanner scanner = new Scanner(lectorArchivo); // Clase generada por JFlex
+            BufferedWriter writer = new BufferedWriter(
+                    new OutputStreamWriter(new FileOutputStream(archivoSalida), "UTF-8")
+            );
+
+            System.out.println("Iniciando análisis léxico de: " + archivoFuente);
+            writer.write("REPORTE DE TOKENS ENCONTRADOS\n");
+            writer.write("====================================\n");
+
+            int contadorLexemas = 0;
+
+            while (true) {
+                Symbol token = scanner.next_token();
+
+                // sym.EOF es el fin de archivo
+                if (token.sym == sym.EOF) {
+                    break;
+                }
+
+                // Obtener nombre del token desde la clase sym
+                String nombreToken = obtenerNombreToken(token.sym);
+                String lexema = (token.value != null) ? token.value.toString() : "N/A";
+
+                String resultado = String.format("Token: %-15s | Lexema: %-15s | Línea: %d | Columna: %d",
+                        nombreToken, lexema, token.left + 1, token.right + 1);
+
+                System.out.println(resultado);
+                writer.write(resultado + "\n");
+
+                //Aumentar el contador de lexemas
+                contadorLexemas++;
+            }
+
+            writer.close();
+
+            System.out.println("\nCantidad de lexemas encontrados: " + contadorLexemas);
+            System.out.println("Análisis finalizado. Resultados guardados en: " + archivoSalida);
+
+        } catch (FileNotFoundException e) {
+            System.err.println("Error: No se encontró el archivo fuente.");
+        } catch (IOException e) {
+            System.err.println("Error de lectura/escritura: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error inesperado: " + e.getMessage());
+        }
+    }
+
+    //Traducir el ID numérico al nombre del token
+    private static String obtenerNombreToken(int id) {
+        try {
+            java.lang.reflect.Field[] fields = sym.class.getFields();
+            for (java.lang.reflect.Field field : fields) {
+                if (field.getInt(null) == id) return field.getName();
+            }
+        } catch (Exception e) { return "UNKNOWN"; }
+        return "UNKNOWN";
+    }
+}
