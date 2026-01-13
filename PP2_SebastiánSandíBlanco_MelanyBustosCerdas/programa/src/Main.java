@@ -14,10 +14,16 @@ RESTRICCIONES:
 import java.io.*;
 import java_cup.runtime.Symbol;
 import generados.Scanner;
+import generados.parser;
 import generados.sym;
+import src.Nodo;
 
 public class Main {
     public static void main(String[] args) throws Exception {
+        analisisLexico();
+    }
+
+    private static void analisisLexico() {
 
         //archivos de texto
         String archivoFuente = "lectura/archivoFuente.txt";
@@ -26,11 +32,14 @@ public class Main {
 
         try {
             Reader lectorArchivo = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(archivoDeErrores), "UTF-8"));
-            Scanner scanner = new Scanner(lectorArchivo); // Clase generada por JFlex
+                    new InputStreamReader(new FileInputStream(archivoFuente), "UTF-8"));
             BufferedWriter writer = new BufferedWriter(
                     new OutputStreamWriter(new FileOutputStream(archivoSalida), "UTF-8")
             );
+
+            Scanner scanner = new Scanner(lectorArchivo); // Clase generada por JFlex
+            parser parser = new parser(scanner);
+            Nodo raiz = (Nodo) parser.parse().value; // Ejecuta el análisis sintáctico
 
             System.out.println("Iniciando análisis léxico de: " + archivoFuente);
             writer.write("REPORTE DE TOKENS ENCONTRADOS\n");
@@ -73,6 +82,12 @@ public class Main {
             System.err.println("Error inesperado: " + e.getMessage());
         }
     }
+
+//    private static void analisisSintactico(){
+//        parser p = new parser(scanner);
+//        Nodo raiz = (Nodo) p.parse().value; // Ejecuta el análisis sintáctico
+//
+//    }
 
     //Traducir el ID numérico al nombre del token
     private static String obtenerNombreToken(int id) {
