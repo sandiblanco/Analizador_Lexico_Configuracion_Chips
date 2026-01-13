@@ -16,6 +16,7 @@ https://www2.cs.tum.edu/projects/cup/ */
 
 package generados;
 import java_cup.runtime.*;
+import src.Nodo;
 
 /* Palabras reservadas */
 terminal String WORLD;     // world
@@ -90,8 +91,14 @@ terminal Boolean   BOOL_LITERAL;
 /* Identificador */
 terminal String ID; // nombres de variables y funciones
 
-/* No terminal mínimo */
-non terminal programa;
+/* No terminales */
+non terminal Nodo programa, declaracionGlobal,funcionNavidad;
 
-/* Producción vacía (placeholder) */
-programa ::= ;
+programa ::= declaracionesGlobales:dg listaFunciones:lf funcionMain:m
+    {:
+        Nodo raiz = new Nodo("PROGRAMA");
+        raiz.agregarHijo(dg);
+        raiz.agregarHijo(lf);
+        raiz.agregarHijo(m);
+        RESULT = raiz;
+    :};
