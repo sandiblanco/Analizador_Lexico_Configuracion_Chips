@@ -92,7 +92,7 @@ terminal Boolean   BOOL_LITERAL;
 terminal String ID; // nombres de variables y funciones
 
 /* No terminales */
-non terminal Nodo programa, declaracionGlobal,funcionNavidad;
+non terminal Nodo programa, declaracionGlobal,funcionNavidad, tipoArreglo, listaFunciones, funcion, funcionMain, parametros, listaParametros, bloque, listaSentencias, sentencia, declaracionLocal, declaracionArreglo, asignacion, sentenciaMostrar, sentenciaLeer, sentenciaReturn, sentenciaBreak, sentenciaDecide, casosDecide, casoDecide, casoElse, sentenciaLoop, salidaLoop, sentenciaFor, forIniciar, forActualizar, llamadaFuncion, argumentos, listaArgumentos, expresion, expresionLogica, terminoLogico, factorLogico, expresionRelacional, operadorRelacional, expresionAritmetica, termino, factor, unario, primario, literal;
 
 programa ::= declaracionesGlobales:dg listaFunciones:lf funcionMain:m
     {:
@@ -101,4 +101,119 @@ programa ::= declaracionesGlobales:dg listaFunciones:lf funcionMain:m
         raiz.agregarHijo(lf);
         raiz.agregarHijo(m);
         RESULT = raiz;
-    :};
+    :}
+
+
+declaracionesGlobales ::= /* vacío */ | declaracionesGlobales declaracionGlobal ;
+
+
+declaracionGlobal ::= WORLD tipo ID ENDL | WORLD tipo ID ASSIGN expresion ENDL ;
+
+
+tipo ::= INT | FLOAT | BOOL | CHAR | STRING ;
+
+tipoArreglo ::= INT | CHAR ;
+
+
+listaFunciones ::= /* vacío */ | listaFunciones funcion ;
+
+
+funcion ::= GIFT tipo ID LPAREN parametros RPAREN bloque ;
+
+
+parametros ::= /* vacío */ | listaParametros ;
+
+
+listaParametros ::= tipo ID | listaParametros COMMA tipo ID ;
+
+
+funcionMain ::= COAL NAVIDAD LPAREN RPAREN bloque ;
+
+
+bloque ::= LBRACE listaSentencias RBRACE ;
+
+listaSentencias ::= /* vacío */ | listaSentencias sentencia ;
+
+sentencia ::= declaracionLocal | declaracionArreglo | asignacion | expresion ENDL | sentenciaMostrar | sentenciaLeer | sentenciaReturn | sentenciaBreak | sentenciaDecide | sentenciaLoop | sentenciaFor ;
+
+declaracionLocal ::= LOCAL tipo ID ENDL | LOCAL tipo ID ASSIGN expresion ENDL ;
+
+
+declaracionArreglo ::= tipoArreglo ID LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ENDL ;
+
+asignacion ::= ID ASSIGN expresion ENDL | ID LBRACKET expresion RBRACKET ASSIGN expresion ENDL | ID LBRACKET expresion RBRACKET LBRACKET expresion RBRACKET ASSIGN expresion ENDL ;
+
+sentenciaMostrar ::= SHOW listaArgumentos ENDL ;
+
+sentenciaLeer ::= GET ID ENDL ;
+
+
+sentenciaDecide ::= DECIDE OF casosDecide casoElse END DECIDE ENDL ;
+
+casoDecide ::= casoDecide | casosDecide casoDecide ;
+
+casoDecide ::= expresion ARROW bloque ;
+
+casoElse ::= /* vacío */ | ELSE ARROW bloque ;
+
+sentenciaLoop ::= LOOP lista_sentencias salida_loop END LOOP ENDL ;
+
+salidaLoop ::= EXIT WHEN expresion ENDL ;
+
+
+sentenciaFor ::= FOR LPAREN forIniciar ENDL expresion ENDL forActualizar RPAREN bloque ;
+
+forIniciar ::= ID ASSIGN expresion ;
+
+forActualizar ::= ID ASSIGN expresion ;
+
+
+sentenciaReturn ::= RETURN expresion ENDL ;
+
+sentenciaBreak ::= BREAK ENDL ;
+
+
+llamadaFuncion ::= ID LPAREN argumentos RPAREN ;
+
+argumentos ::= /* vacío */ | listaArgumentos ;
+
+listaArgumentos ::= expresion | listaArgumentos COMMA expresion ;
+
+
+expresion ::= expresionLogica ;
+
+
+expresionLogica ::= expresionLogica OR terminoLogico | terminoLogico ;
+
+
+terminoLogico ::= terminoLogico AND factorLogico | factorLogico ;
+
+
+factorLogico ::= NOT factorLogico | expresionRelacional ;
+
+
+expresionRelacional ::= expresionAritmetica operadorRelacional expresionAritmetica | expresionAritmetica ;
+
+
+operadorRelacional ::= LOWTHAN | LOWEQ | GTHAN | GEQ | EQ | NEQ ;
+
+
+expresionAritmetica ::= expresionAritmetica PLUS termino | expresionAritmetica MINUS termino | termino ;
+
+
+termino ::= termino MULT factor | termino DIV factor | termino DIVENT factor | termino MOD factor | factor ;
+
+
+factor ::= factor ELEV unario | unario ;
+
+
+unario ::= MINUS unario | INC ID | DEC ID | primario ;
+
+
+primario ::= ID | literal | llamadaFuncion | ID LBRACKET expresion RBRACKET LBRACKET expresion RBRACKET | LPAREN expresion RPAREN ;
+
+
+literal ::= INT_LITERAL | FLOAT_LITERAL | STRING_LITERAL | CHAR_LITERAL | BOOL_LITERAL ;
+
+
+;
