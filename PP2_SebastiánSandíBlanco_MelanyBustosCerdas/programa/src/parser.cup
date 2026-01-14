@@ -102,118 +102,187 @@ programa ::= declaracionesGlobales:dg listaFunciones:lf funcionMain:m
         raiz.agregarHijo(m);
         RESULT = raiz;
     :}
+declaracionesGlobales ::= {: RESULT = null; :} 
+			| declaracionesGlobales declaracionGlobal {: RESULT = null; :}
+;
+
+declaracionGlobal ::= WORLD tipo ID ENDL {: RESULT = null; :} 
+		    | WORLD tipo ID ASSIGN expresion ENDL {: RESULT = null; :}
+;
+
+tipo ::= INT     {: RESULT = "int"; :}
+       | FLOAT   {: RESULT = "float"; :}
+       | BOOL    {: RESULT = "bool"; :}
+       | CHAR    {: RESULT = "char"; :}
+       | STRING  {: RESULT = "string"; :}
+;
+
+tipoArreglo ::= INT  {: RESULT = "int"; :}
+              | CHAR {: RESULT = "char"; :}
+;
+
+listaFunciones ::= {: RESULT = null; :}
+                 | listaFunciones función {: RESULT = null; :}
+;
+
+funcion ::= GIFT tipo ID LPAREN parametros RPAREN bloque {: RESULT = null; :}
+;
+
+funcionMain ::= COAL NAVIDAD LPAREN RPAREN bloque {: RESULT = null; :}
+;
 
 
-declaracionesGlobales ::= /* vacío */ | declaracionesGlobales declaracionGlobal ;
+parametros ::= {: RESULT = null; :}
+             | listaParametros {: RESULT = null; :}
+;
+
+listaParametros ::= tipo ID {: RESULT = null; :}
+                  | listaParametros COMMA tipo ID {: RESULT = null; :}
+;
 
 
-declaracionGlobal ::= WORLD tipo ID ENDL | WORLD tipo ID ASSIGN expresion ENDL ;
+bloque ::= LBRACE listaSentencias RBRACE {: RESULT = null; :}
+;
+
+listaSentencias ::= {: RESULT = null; :}
+                  | listaSentencias sentencia {: RESULT = null; :}
+;
+
+sentencia ::= declaracionLocal
+            | declaracionArreglo
+            | asignacion
+            | expresion ENDL
+            | sentenciaMostrar
+            | sentenciaLeer
+            | sentenciaReturn
+            | sentenciaBreak
+            | sentenciaDecide
+            | sentenciaLoop
+            | sentenciaFor
+;
+
+declaracionLocal ::= LOCAL tipo ID ENDL {: RESULT = null; :}
+                   | LOCAL tipo ID ASSIGN expresion ENDL {: RESULT = null; :}
+;
+
+declaracionArreglo ::= tipoArreglo ID LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ENDL {: RESULT = null; :}
+;
+
+asignacion ::= ID ASSIGN expresion ENDL {: RESULT = null; :}
+             | ID LBRACKET expresion RBRACKET ASSIGN expresion ENDL {: RESULT = null; :}
+             | ID LBRACKET expresion RBRACKET LBRACKET expresion RBRACKET ASSIGN expresion ENDL {: RESULT = null; :}
+;
+
+sentenciaMostrar ::= SHOW listaArgumentos ENDL {: RESULT = null; :}
+;
+
+sentenciaLeer ::= GET ID ENDL {: RESULT = null; :}
+;
 
 
-tipo ::= INT | FLOAT | BOOL | CHAR | STRING ;
+sentenciaDecide ::= DECIDE OF casosDecide casoElse END DECIDE ENDL {: RESULT = null; :}
+;
 
-tipoArreglo ::= INT | CHAR ;
+casosDecide ::= casoDecide
+              | casosDecide casoDecide
+;
 
+casoDecide ::= expresion ARROW bloque {: RESULT = null; :}
+;
 
-listaFunciones ::= /* vacío */ | listaFunciones funcion ;
+casoElse ::= {: RESULT = null; :}
+           | ELSE ARROW bloque {: RESULT = null; :}
+;
 
+sentenciaLoop ::= LOOP listaSentencias salidaLoop END LOOP ENDL {: RESULT = null; :}
+;
 
-funcion ::= GIFT tipo ID LPAREN parametros RPAREN bloque ;
+salidaLoop ::= EXIT WHEN expresion ENDL {: RESULT = null; :}
+;
 
+sentenciaFor ::= FOR LPAREN forIniciar ENDL expresion ENDL forActualizar RPAREN bloque {: RESULT = null; :}
+;
 
-parametros ::= /* vacío */ | listaParametros ;
+forIniciar ::= ID ASSIGN expresion {: RESULT = null; :}
+;
 
+forActualizar ::= ID ASSIGN expresion {: RESULT = null; :}
+;
 
-listaParametros ::= tipo ID | listaParametros COMMA tipo ID ;
+sentenciaReturn ::= RETURN expresion ENDL {: RESULT = null; :}
+;
 
+sentenciaBreak ::= BREAK ENDL {: RESULT = null; :}
+;
 
-funcionMain ::= COAL NAVIDAD LPAREN RPAREN bloque ;
+llamadaFuncion ::= ID LPAREN argumentos RPAREN
+            {: RESULT = null; :}
+;
 
+argumentos ::= {: RESULT = null; :}
+             | listaArgumentos {: RESULT = null; :}
+;
 
-bloque ::= LBRACE listaSentencias RBRACE ;
+listaArgumentos ::= expresion {: RESULT = null; :}
+                  | listaArgumentos COMMA expresion {: RESULT = null; :}
+;
 
-listaSentencias ::= /* vacío */ | listaSentencias sentencia ;
+expresion ::= expresionLogica {: RESULT = $1; :}
+;
 
-sentencia ::= declaracionLocal | declaracionArreglo | asignacion | expresion ENDL | sentenciaMostrar | sentenciaLeer | sentenciaReturn | sentenciaBreak | sentenciaDecide | sentenciaLoop | sentenciaFor ;
+expresionLogica ::= expresionLogica OR terminoLogico {: RESULT = null; :}
+                  | terminoLogico {: RESULT = $1; :}
+;
 
-declaracionLocal ::= LOCAL tipo ID ENDL | LOCAL tipo ID ASSIGN expresion ENDL ;
+terminoLogico ::= terminoLogico AND factorLogico {: RESULT = null; :}
+                | factorLogico {: RESULT = $1; :}
+;
 
+factorLogico ::= NOT factorLogico {: RESULT = null; :}
+               | expresionRelacional {: RESULT = $1; :}
+;
 
-declaracionArreglo ::= tipoArreglo ID LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ENDL ;
-
-asignacion ::= ID ASSIGN expresion ENDL | ID LBRACKET expresion RBRACKET ASSIGN expresion ENDL | ID LBRACKET expresion RBRACKET LBRACKET expresion RBRACKET ASSIGN expresion ENDL ;
-
-sentenciaMostrar ::= SHOW listaArgumentos ENDL ;
-
-sentenciaLeer ::= GET ID ENDL ;
-
-
-sentenciaDecide ::= DECIDE OF casosDecide casoElse END DECIDE ENDL ;
-
-casoDecide ::= casoDecide | casosDecide casoDecide ;
-
-casoDecide ::= expresion ARROW bloque ;
-
-casoElse ::= /* vacío */ | ELSE ARROW bloque ;
-
-sentenciaLoop ::= LOOP lista_sentencias salida_loop END LOOP ENDL ;
-
-salidaLoop ::= EXIT WHEN expresion ENDL ;
-
-
-sentenciaFor ::= FOR LPAREN forIniciar ENDL expresion ENDL forActualizar RPAREN bloque ;
-
-forIniciar ::= ID ASSIGN expresion ;
-
-forActualizar ::= ID ASSIGN expresion ;
-
-
-sentenciaReturn ::= RETURN expresion ENDL ;
-
-sentenciaBreak ::= BREAK ENDL ;
-
-
-llamadaFuncion ::= ID LPAREN argumentos RPAREN ;
-
-argumentos ::= /* vacío */ | listaArgumentos ;
-
-listaArgumentos ::= expresion | listaArgumentos COMMA expresion ;
-
-
-expresion ::= expresionLogica ;
-
-
-expresionLogica ::= expresionLogica OR terminoLogico | terminoLogico ;
-
-
-terminoLogico ::= terminoLogico AND factorLogico | factorLogico ;
-
-
-factorLogico ::= NOT factorLogico | expresionRelacional ;
-
-
-expresionRelacional ::= expresionAritmetica operadorRelacional expresionAritmetica | expresionAritmetica ;
-
+expresionRelacional ::= expresionAritmetica operadorRelacional expresionAritmetica {: RESULT = null; :}
+                      | expresionAritmetica {: RESULT = $1; :}
+;
 
 operadorRelacional ::= LOWTHAN | LOWEQ | GTHAN | GEQ | EQ | NEQ ;
 
+expresionAritmetica ::= expresionAritmetica PLUS termino{: RESULT = null; :}
+                      | expresionAritmetica MINUS termino {: RESULT = null; :}
+        	      | termino {: RESULT = $1; :}
+;
 
-expresionAritmetica ::= expresionAritmetica PLUS termino | expresionAritmetica MINUS termino | termino ;
+termino ::= termino MULT factor {: RESULT = null; :}
+          | termino DIV factor {: RESULT = null; :}
+          | termino DIVENT factor {: RESULT = null; :}
+          | termino MOD factor {: RESULT = null; :}
+          | factor {: RESULT = $1; :}
+;
 
+factor ::= factor ELEV unario {: RESULT = null; :}
+         | unario {: RESULT = $1; :}
+;
 
-termino ::= termino MULT factor | termino DIV factor | termino DIVENT factor | termino MOD factor | factor ;
+unario ::= MINUS unario %prec UMINUS {: RESULT = null; :}
+         | INC ID {: RESULT = null; :}
+         | DEC ID {: RESULT = null; :}
+         | primario {: RESULT = $1; :}
+;
 
+primario ::= ID {: RESULT = null; :}
+           | literal {: RESULT = $1; :}
+           | llamadaFuncion {: RESULT = null; :}
+           | ID LBRACKET expresion RBRACKET LBRACKET expresion RBRACKET {: RESULT = null; :}
+           | LPAREN expresion RPAREN {: RESULT = $2; :}
+;
 
-factor ::= factor ELEV unario | unario ;
-
-
-unario ::= MINUS unario | INC ID | DEC ID | primario ;
-
-
-primario ::= ID | literal | llamadaFuncion | ID LBRACKET expresion RBRACKET LBRACKET expresion RBRACKET | LPAREN expresion RPAREN ;
-
-
-literal ::= INT_LITERAL | FLOAT_LITERAL | STRING_LITERAL | CHAR_LITERAL | BOOL_LITERAL ;
+literal ::= INT_LITERAL {: RESULT = $1; :}
+          | FLOAT_LITERAL {: RESULT = $1; :}
+          | STRING_LITERAL {: RESULT = $1; :}
+          | CHAR_LITERAL {: RESULT = $1; :}
+          | BOOL_LITERAL {: RESULT = $1; :}
+;
 
 
 ;
