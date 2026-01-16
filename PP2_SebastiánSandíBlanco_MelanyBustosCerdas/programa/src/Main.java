@@ -1,6 +1,6 @@
 /*
 CURSO: Compiladores e Intérpretes
-PROYECTO #1: Análisis Léxico
+PROYECTO #2: Análisis Sintáctico
 ESTUDIANTES: Sebastián Sandí Blanco y Melany Bustos Cerdas
 ARCHIVO: Main.java
 
@@ -19,16 +19,17 @@ import generados.sym;
 import src.Nodo;
 
 public class Main {
+
+    //archivos de texto
+    private static final String archivoFuente = "lectura/archivoFuente.txt";
+    private static final String archivoDeErrores = "lectura/pruebaErrores.txt";
+    private static final String archivoSalida = "lectura/tokens_encontrados.txt";
+
     public static void main(String[] args) throws Exception {
-        analisisLexico();
+        menuOpciones();
     }
 
     private static void analisisLexico() {
-
-        //archivos de texto
-        String archivoFuente = "lectura/archivoFuente.txt";
-        String archivoDeErrores = "lectura/pruebaErrores.txt";
-        String archivoSalida = "lectura/tokens_encontrados.txt";
 
         try {
             Reader lectorArchivo = new BufferedReader(
@@ -39,7 +40,7 @@ public class Main {
 
             Scanner scanner = new Scanner(lectorArchivo); // Clase generada por JFlex
             parser parser = new parser(scanner);
-            Nodo raiz = (Nodo) parser.parse().value; // Ejecuta el análisis sintáctico
+            //Nodo raiz = (Nodo) parser.parse().value; // Ejecuta el análisis sintáctico
 
             System.out.println("Iniciando análisis léxico de: " + archivoFuente);
             writer.write("REPORTE DE TOKENS ENCONTRADOS\n");
@@ -83,12 +84,39 @@ public class Main {
         }
     }
 
-//    private static void analisisSintactico(){
+    private static void analisisSintactico(){
 //        parser p = new parser(scanner);
 //        Nodo raiz = (Nodo) p.parse().value; // Ejecuta el análisis sintáctico
-//
-//    }
 
+    }
+
+
+    private static void menuOpciones(){
+        java.util.Scanner teclado = new java.util.Scanner(System.in);
+        int opcion;
+        do {
+            System.out.println("--- COMPILADOR CHIPS ---\n");
+            System.out.println("1. Análisis Léxico (Lista de Tokens)");
+            System.out.println("2. Análisis Sintáctico (Validación y Árbol)");
+            System.out.println("3. Salir");
+            System.out.print("Seleccione una opción: ");
+            opcion = teclado.nextInt();
+
+            switch (opcion) {
+                case 1:
+                    analisisLexico();
+                    break;
+                case 2:
+                    analisisSintactico();
+                    break;
+                case 3:
+                    System.out.println("Saliendo...");
+                    break;
+                default:
+                    System.out.println("Opción no válida.");
+            }
+        } while (opcion != 3);
+    }
     //Traducir el ID numérico al nombre del token
     private static String obtenerNombreToken(int id) {
         try {
