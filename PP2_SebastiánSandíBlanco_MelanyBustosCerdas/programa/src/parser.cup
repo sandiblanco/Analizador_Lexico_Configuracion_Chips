@@ -1,15 +1,18 @@
 /*
 CURSO: Compiladores e Intérpretes
-PROYECTO #1: Análisis Léxico
+PROYECTO #2: Análisis Sintáctico
 ESTUDIANTES: Sebastián Sandí Blanco y Melany Bustos Cerdas
 ARCHIVO: parser.cup
 
-OBJETIVO: Definir la gramática del lenguaje
-ENTRADA: Especificaciones de terminales y no terminales
-SALIDA: Clase java con constantes enteras que representan cada token
+OBJETIVO: Definir la gramática del lenguaje, realizar la estructura para el árbol sintáctico y la tabla de símbolos
+
+ENTRADA: Especificaciones de terminales, no terminales, precedencias y nodos
+
+SALIDA: Clase java con constantes enteras que representan cada token y la clase del parser para construir el árbol sintáctico y 
+registrar información en la tabla de símbolos
+
 RESTRICCIONES:
-- Solo se definen los terminales en esta fase del proyecto, no producciones
-- Incluye una producción mínima para permitir la generación de código
+-La validación semántica se limita a errores básicos.
 
 Código obtenido de la página oficial de Cup y adaptado para el proyecto
 https://www2.cs.tum.edu/projects/cup/ */
@@ -92,7 +95,18 @@ terminal Boolean   BOOL_LITERAL;
 terminal String ID; // nombres de variables y funciones
 
 /* No terminales */
-non terminal Nodo programa, declaracionGlobal,funcionNavidad, tipoArreglo, listaFunciones, funcion, funcionMain, parametros, listaParametros, bloque, listaSentencias, sentencia, declaracionLocal, declaracionArreglo, asignacion, sentenciaMostrar, sentenciaLeer, sentenciaReturn, sentenciaBreak, sentenciaDecide, casosDecide, casoDecide, casoElse, sentenciaLoop, salidaLoop, sentenciaFor, forIniciar, forActualizar, llamadaFuncion, argumentos, listaArgumentos, expresion, expresionLogica, terminoLogico, factorLogico, expresionRelacional, operadorRelacional, expresionAritmetica, termino, factor, unario, primario, literal;
+non terminal Nodo programa, declaracionesGlobales, declaracionGlobal,funcionNavidad, tipo, listaFunciones, funcion, funcionMain, parametros, listaParametros, bloque, listaSentencias, sentencia, declaracionLocal, declaracionArreglo, arregloAsignacion, listaFilas,fila, listaValores, valoresArreglo, asignacion, sentenciaMostrar, sentenciaLeer, sentenciaReturn, sentenciaBreak, sentenciaDecide, casosDecide, casoDecide, casoElse, sentenciaLoop, salidaLoop, sentenciaFor, forIniciar, forActualizar, llamadaFuncion, argumentos, listaArgumentos, expresion, expresionLogica, terminoLogico, factorLogico, expresionRelacional, operadorRelacional, expresionAritmetica, termino, factor, unario, primario, literal;
+
+/* Precedencias */
+precedence left OR;
+precedence left AND;
+precedence right NOT;
+precedence left EQ, NEQ, LOWTHAN, LOWEQ, GTHAN, GEQ;
+precedence left PLUS, MINUS;
+precedence left MULT, DIV, DIVENT, MOD;
+precedence right ELEV;
+precedence right UMINUS;
+
 
 programa ::= declaracionesGlobales:dg listaFunciones:lf funcionMain:m
     {:
@@ -106,6 +120,7 @@ declaracionesGlobales ::= {: RESULT = null; :}
 			| declaracionesGlobales declaracionGlobal {: RESULT = null; :}
 ;
 
+
 declaracionGlobal ::= WORLD tipo ID ENDL {: RESULT = null; :} 
 		    | WORLD tipo ID ASSIGN expresion ENDL {: RESULT = null; :}
 ;
@@ -117,12 +132,9 @@ tipo ::= INT     {: RESULT = "int"; :}
        | STRING  {: RESULT = "string"; :}
 ;
 
-tipoArreglo ::= INT  {: RESULT = "int"; :}
-              | CHAR {: RESULT = "char"; :}
-;
 
 listaFunciones ::= {: RESULT = null; :}
-                 | listaFunciones función {: RESULT = null; :}
+                 | listaFunciones funcion {: RESULT = null; :}
 ;
 
 funcion ::= GIFT tipo ID LPAREN parametros RPAREN bloque {: RESULT = null; :}
@@ -165,8 +177,30 @@ declaracionLocal ::= LOCAL tipo ID ENDL {: RESULT = null; :}
                    | LOCAL tipo ID ASSIGN expresion ENDL {: RESULT = null; :}
 ;
 
-declaracionArreglo ::= tipoArreglo ID LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ENDL {: RESULT = null; :}
+declaracionArreglo ::= tipo ID LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ENDL {: RESULT = null; :}
+		     | tipo ID LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ASSIGN arregloAsignacion ENDL {: RESULT = null; :}
 ;
+
+
+arregloAsignacion ::= LBRACE listaFilas RBRACE {: RESULT = null; :}
+;
+
+
+listaFilas ::= fila
+             | listaFilas fila
+;
+
+fila ::= LBRACE listaValores RBRACE {: RESULT = null; :}
+;
+
+listaValores ::= valoresArreglo
+               | listaValores COMMA valoresArreglo
+;
+
+valoresArreglo ::= INT_LITERAL
+          | CHAR_LITERAL
+;
+
 
 asignacion ::= ID ASSIGN expresion ENDL {: RESULT = null; :}
              | ID LBRACKET expresion RBRACKET ASSIGN expresion ENDL {: RESULT = null; :}
@@ -227,30 +261,30 @@ listaArgumentos ::= expresion {: RESULT = null; :}
                   | listaArgumentos COMMA expresion {: RESULT = null; :}
 ;
 
-expresion ::= expresionLogica {: RESULT = $1; :}
+expresion ::= expresionLogica {: RESULT = null; :}
 ;
 
 expresionLogica ::= expresionLogica OR terminoLogico {: RESULT = null; :}
-                  | terminoLogico {: RESULT = $1; :}
+                  | terminoLogico {: RESULT = null; :}
 ;
 
 terminoLogico ::= terminoLogico AND factorLogico {: RESULT = null; :}
-                | factorLogico {: RESULT = $1; :}
+                | factorLogico {: RESULT = null; :}
 ;
 
 factorLogico ::= NOT factorLogico {: RESULT = null; :}
-               | expresionRelacional {: RESULT = $1; :}
+               | expresionRelacional {: RESULT = null; :}
 ;
 
 expresionRelacional ::= expresionAritmetica operadorRelacional expresionAritmetica {: RESULT = null; :}
-                      | expresionAritmetica {: RESULT = $1; :}
+                      | expresionAritmetica {: RESULT = null; :}
 ;
 
 operadorRelacional ::= LOWTHAN | LOWEQ | GTHAN | GEQ | EQ | NEQ ;
 
 expresionAritmetica ::= expresionAritmetica PLUS termino{: RESULT = null; :}
                       | expresionAritmetica MINUS termino {: RESULT = null; :}
-        	      | termino {: RESULT = $1; :}
+        	      | termino {: RESULT = null; :}
 ;
 
 termino ::= termino MULT factor {: RESULT = null; :}
@@ -261,28 +295,27 @@ termino ::= termino MULT factor {: RESULT = null; :}
 ;
 
 factor ::= factor ELEV unario {: RESULT = null; :}
-         | unario {: RESULT = $1; :}
+         | unario {: RESULT = null; :}
 ;
 
 unario ::= MINUS unario %prec UMINUS {: RESULT = null; :}
          | INC ID {: RESULT = null; :}
          | DEC ID {: RESULT = null; :}
-         | primario {: RESULT = $1; :}
+         | primario {: RESULT = null; :}
 ;
 
 primario ::= ID {: RESULT = null; :}
-           | literal {: RESULT = $1; :}
+           | literal {: RESULT = null; :}
            | llamadaFuncion {: RESULT = null; :}
            | ID LBRACKET expresion RBRACKET LBRACKET expresion RBRACKET {: RESULT = null; :}
-           | LPAREN expresion RPAREN {: RESULT = $2; :}
+           | LPAREN expresion RPAREN {: RESULT = null; :}
 ;
 
-literal ::= INT_LITERAL {: RESULT = $1; :}
-          | FLOAT_LITERAL {: RESULT = $1; :}
-          | STRING_LITERAL {: RESULT = $1; :}
-          | CHAR_LITERAL {: RESULT = $1; :}
-          | BOOL_LITERAL {: RESULT = $1; :}
+literal ::= INT_LITERAL {: RESULT = null; :}
+          | FLOAT_LITERAL {: RESULT = null; :}
+          | STRING_LITERAL {: RESULT = null; :}
+          | CHAR_LITERAL {: RESULT = null; :}
+          | BOOL_LITERAL {: RESULT = null; :}
 ;
-
 
 ;
