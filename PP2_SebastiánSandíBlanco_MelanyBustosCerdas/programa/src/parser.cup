@@ -40,14 +40,9 @@ action code {:
 
     void agregarSimbolo(String nombre, String tipo) {
         ArrayList<String> tabla = tablaSimbolos.get(scopeActual);
-        for (String s : tabla) {
-            if (s.startsWith(nombre + ":")) {
-                System.err.println("Error: símbolo redeclarado -> " + nombre);
-                return;
-            }
-        }
         tabla.add(nombre + ":" + tipo + ":" + scopeActual);
     }
+
 
     public void imprimirTablaSimbolos() {
         for (String scope : tablaSimbolos.keySet()) {
@@ -155,7 +150,6 @@ programa ::= declaracionesGlobales:dg listaFunciones:lf funcionMain:m
         if(dg != null) raiz.agregarHijo(dg);
         if(lf != null) raiz.agregarHijo(lf);
         if(m != null) raiz.agregarHijo(m);
-        imprimirTablaSimbolos();
         RESULT = raiz;
     :}
 ;
@@ -202,12 +196,12 @@ listaFunciones ::= listaFunciones:lf funcion:f
     {: RESULT = new Nodo("LISTA FUNCIONES"); :}
 ;
 
-funcion ::= GIFT tipo:t ID:id LPAREN parametros:p RPAREN
+funcion ::= GIFT tipo:t ID:id
     {:
         scopeActual = id; // Cambia al ámbito de la función
         tablaSimbolos.put(scopeActual, new ArrayList<>());
     :}
-    bloque:b
+    LPAREN parametros:p RPAREN bloque:b
     {:
         Nodo funcion = new Nodo("Función: " + id);
         funcion.agregarHijo(p);
@@ -442,19 +436,35 @@ sentenciaFor ::= FOR LPAREN forIniciar:fi ENDL expresion:e ENDL forActualizar:fa
                  :}
 ;
 
-forIniciar ::= ID ASSIGN expresion:e {:
-                Nodo n = new Nodo("For Inicio");
-                n.agregarHijo(e);
-                RESULT = n;
-              :}
+
+forIniciar ::= tipo:t ID:i ASSIGN expresion:e
+      {:
+          agregarSimbolo(i, t);
+          Nodo n = new Nodo("For Inicio");
+          n.agregarHijo(e);
+          RESULT = n;
+      :}
+    | ID ASSIGN expresion:e
+      {:
+          Nodo n = new Nodo("For Inicio");
+          n.agregarHijo(e);
+          RESULT = n;
+      :}
 ;
 
-forActualizar ::= ID ASSIGN expresion:e {:
-                    Nodo n = new Nodo("For Actualización");
-                    n.agregarHijo(e);
-                    RESULT = n;
-                  :}
+
+forActualizar ::= tipo ID ASSIGN expresion:e
+      {:
+          Nodo n = new Nodo("For Actualización");
+          n.agregarHijo(e);
+          RESULT = n;
+      :}
+    | INC ID {: RESULT = new Nodo("Incremento"); :}
+    | ID INC {: RESULT = new Nodo("Incremento"); :}
+    | DEC ID {: RESULT = new Nodo("Decremento"); :}
+    | ID DEC {: RESULT = new Nodo("Decremento"); :}
 ;
+
 
 sentenciaReturn ::= RETURN expresion:e ENDL {:
                         Nodo n = new Nodo("Sentencia Return");
