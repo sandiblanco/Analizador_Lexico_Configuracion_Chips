@@ -84,9 +84,46 @@ public class Main {
         }
     }
 
-    private static void analisisSintactico(){
-//        parser p = new parser(scanner);
-//        Nodo raiz = (Nodo) p.parse().value; // Ejecuta el análisis sintáctico
+//    private static void analisisSintactico(){
+//        try {
+//            Reader lectorArchivo = new BufferedReader(
+//                    new InputStreamReader(new FileInputStream(archivoFuente), "UTF-8")
+//            );
+//
+//            Scanner scanner = new Scanner(lectorArchivo);
+//            parser parser = new parser(scanner);
+//
+//            parser.parse();
+//
+//            System.out.println("\nAnálisis sintáctico finalizado correctamente");
+//            System.out.println("Tabla de símbolos generada:");
+//            parser.imprimirTablaSimbolos();
+//
+//        } catch (Exception e) {
+//            System.err.println("Error en análisis sintáctico:");
+//        }
+////        parser p = new parser(scanner);
+////        Nodo raiz = (Nodo) p.parse().value; // Ejecuta el análisis sintáctico
+//
+//    }
+
+    private static void arbolSintactico(){
+        try {
+            // Reiniciamos el lector para que el parser tenga tokens que leer
+            Reader lector = new BufferedReader(new InputStreamReader(new FileInputStream(archivoFuente), "UTF-8"));
+            generados.Scanner lexer = new generados.Scanner(lector);
+            generados.parser p = new generados.parser(lexer);
+
+            System.out.println("\n--- INICIANDO ANÁLISIS SINTÁCTICO ---");
+            Nodo raiz = (Nodo) p.parse().value;
+
+            if (raiz != null) {
+                System.out.println("[ÉXITO] Estructura válida según la gramática.");
+                raiz.imprimir("");
+            }
+        } catch (Exception e) {
+            System.err.println("Error sintáctico: " + e.getMessage());
+        }
 
     }
 
@@ -107,7 +144,7 @@ public class Main {
                     analisisLexico();
                     break;
                 case 2:
-                    analisisSintactico();
+                    arbolSintactico();
                     break;
                 case 3:
                     System.out.println("Saliendo...");

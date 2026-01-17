@@ -6,10 +6,10 @@ ARCHIVO: parser.cup
 
 OBJETIVO: Definir la gramática del lenguaje, realizar la estructura para el árbol sintáctico y la tabla de símbolos
 
-ENTRADA: Especificaciones de terminales, no terminales, precedencias y nodos
+ENTRADA: Especificaciones de terminales, no terminales, precedencias, nodos y la gramática del lenguaje
 
-SALIDA: Clase java con constantes enteras que representan cada token y la clase del parser para construir el árbol sintáctico y 
-registrar información en la tabla de símbolos
+SALIDA: Clase java con constantes enteras que representan cada token y analizador sintáctico generado con CUP que construye el árbol
+sintáctico y la tabla de símbolos.
 
 RESTRICCIONES:
 -La validación semántica se limita a errores básicos.
@@ -20,7 +20,39 @@ https://www2.cs.tum.edu/projects/cup/ */
 package generados;
 import java_cup.runtime.*;
 import src.Nodo;
+import java.util.HashMap;
+import java.util.ArrayList;
 
+/*
+action code {:
+    HashMap<String, ArrayList<String>> tablaSimbolos = new HashMap<>();
+    String scopeActual = "GLOBAL";
+
+    {
+        tablaSimbolos.put("GLOBAL", new ArrayList<>());
+    }
+
+    void agregarSimbolo(String nombre, String tipo) {
+        ArrayList<String> tabla = tablaSimbolos.get(scopeActual);
+        for (String s : tabla) {
+            if (s.startsWith(nombre + ":")) {
+                System.err.println("Error: símbolo redeclarado -> " + nombre);
+                return;
+            }
+        }
+        tabla.add(nombre + ":" + tipo + ":" + scopeActual);
+    }
+
+    public void imprimirTablaSimbolos() {
+        for (String scope : tablaSimbolos.keySet()) {
+            System.out.println("\nTabla de símbolos: " + scope);
+            for (String s : tablaSimbolos.get(scope)) {
+                System.out.println("  " + s);
+            }
+        }
+    }
+:}
+*/
 
 /* Palabras reservadas */
 terminal String WORLD;     // world
@@ -87,11 +119,11 @@ terminal String COMMA;     // ,
 terminal String ENDL;      // endl
 
 /* Literales */
-terminal Integer   INT_LITERAL;     
-terminal Double    FLOAT_LITERAL;   
-terminal String    STRING_LITERAL;  
-terminal Character CHAR_LITERAL;  
-terminal Boolean   BOOL_LITERAL;   
+terminal Integer   INT_LITERAL;
+terminal Double    FLOAT_LITERAL;
+terminal String    STRING_LITERAL;
+terminal Character CHAR_LITERAL;
+terminal Boolean   BOOL_LITERAL;
 
 /* Identificador */
 terminal String ID; // nombres de variables y funciones
@@ -118,6 +150,7 @@ programa ::= declaracionesGlobales:dg listaFunciones:lf funcionMain:m
         if(dg != null) raiz.agregarHijo(dg);
         if(lf != null) raiz.agregarHijo(lf);
         if(m != null) raiz.agregarHijo(m);
+        //imprimirTablaSimbolos();
         RESULT = raiz;
     :}
 ;
@@ -127,16 +160,21 @@ declaracionesGlobales ::= declaracionesGlobales:dsG declaracionGlobal:dG
         dsG.agregarHijo(dG);
         RESULT = dsG;
     :}
+    | /* caso base vacío */
     {: RESULT = new Nodo("LISTA DECLARACIONES GLOBALES"); :}
 ;
 
 
-declaracionGlobal ::= WORLD tipo ID ENDL {:
+declaracionGlobal ::= WORLD tipo:t ID:i ENDL {:
+  //scopeActual = "GLOBAL";
+  //agregarSimbolo(i, t);
   Nodo declaracionG = new Nodo("Declaración Global");
   RESULT = declaracionG;
 
 :}
-		    | WORLD tipo ID ASSIGN expresion ENDL {:
+		    | WORLD tipo:t ID:i ASSIGN expresion ENDL {:
+        //scopeActual = "GLOBAL";
+        //agregarSimbolo(i, t);
 		    Nodo declaracionG = new Nodo("Declaración global con asignación ");
 		    RESULT = declaracionG;
 :}
@@ -155,6 +193,7 @@ listaFunciones ::= listaFunciones:lf funcion:f
         lf.agregarHijo(f);
         RESULT = lf;
     :}
+    | /* caso base vacío */
     {: RESULT = new Nodo("LISTA FUNCIONES"); :}
 ;
 
@@ -201,6 +240,7 @@ listaSentencias ::= listaSentencias:ls sentencia:s
         ls.agregarHijo(s);
         RESULT = ls;
     :}
+    | /* caso base vacío */
     {: RESULT = new Nodo("LISTA SENTENCIAS"); :}
 ;
 
@@ -219,6 +259,12 @@ sentencia ::= declaracionLocal:s    {: RESULT = s; :}
             | sentenciaDecide:s     {: RESULT = s; :}
             | sentenciaLoop:s       {: RESULT = s; :}
             | sentenciaFor:s        {: RESULT = s; :}
+            | error ENDL
+                          {:
+                            System.err.println("Error sintáctico detectado. El parser se sincronizará en el siguiente 'endl'.");
+                            Nodo errorNodo = new Nodo(">>> ERROR SINTÁCTICO <<<");
+                            RESULT = errorNodo;
+                          :}
 
 ;
 
