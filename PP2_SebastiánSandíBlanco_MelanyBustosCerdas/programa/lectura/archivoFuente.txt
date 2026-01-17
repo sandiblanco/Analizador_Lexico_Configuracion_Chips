@@ -1,27 +1,18 @@
-world x = 10 endl
+world float pi = 3.14 endl
 
-gift suma ¿int a, int b? i
+gift int suma ¿int a, int b? ¡
+
+    loop
+        contador = contador + 1 endl
+        exit when ¿contador == 5? endl
+     end loop endl
+
     return a + b endl
 !
 
-coal navidad ¿? i
-    local x = 10 endl
-    local mensaje = "Hola" endl
-    local check = true endl
-
-    decide of
-        ¿x > 5? -> i
-            show mensaje endl
-        !
-        else -> i
-            show "Menor" endl
-        !
-    end decide endl
-
-    loop i
-        x = x - 1 endl
-        exit when ¿x == 0? endl
-    ! end loop endl
+coal navidad ¿ ? ¡
+    local int x = 10 endl
+    local int contador = 0 endl
 
     return 0 endl
 !
