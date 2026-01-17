@@ -6,10 +6,10 @@ ARCHIVO: parser.cup
 
 OBJETIVO: Definir la gramática del lenguaje, realizar la estructura para el árbol sintáctico y la tabla de símbolos
 
-ENTRADA: Especificaciones de terminales, no terminales, precedencias y nodos
+ENTRADA: Especificaciones de terminales, no terminales, precedencias, nodos y la gramática del lenguaje
 
-SALIDA: Clase java con constantes enteras que representan cada token y la clase del parser para construir el árbol sintáctico y 
-registrar información en la tabla de símbolos
+SALIDA: Clase java con constantes enteras que representan cada token y analizador sintáctico generado con CUP que construye el árbol 
+sintáctico y la tabla de símbolos.
 
 RESTRICCIONES:
 -La validación semántica se limita a errores básicos.
@@ -20,6 +20,37 @@ https://www2.cs.tum.edu/projects/cup/ */
 package generados;
 import java_cup.runtime.*;
 import src.Nodo;
+import java.util.HashMap;
+import java.util.ArrayList;
+
+action code {:
+    HashMap<String, ArrayList<String>> tablaSimbolos = new HashMap<>();
+    String scopeActual = "GLOBAL";
+
+    {
+        tablaSimbolos.put("GLOBAL", new ArrayList<>());
+    }
+
+    void agregarSimbolo(String nombre, String tipo) {
+        ArrayList<String> tabla = tablaSimbolos.get(scopeActual);
+        for (String s : tabla) {
+            if (s.startsWith(nombre + ":")) {
+                System.err.println("Error: símbolo redeclarado -> " + nombre);
+                return;
+            }
+        }
+        tabla.add(nombre + ":" + tipo + ":" + scopeActual);
+    }
+
+    public void imprimirTablaSimbolos() {
+        for (String scope : tablaSimbolos.keySet()) {
+            System.out.println("\nTabla de símbolos: " + scope);
+            for (String s : tablaSimbolos.get(scope)) {
+                System.out.println("  " + s);
+            }
+        }
+    }
+:}
 
 
 /* Palabras reservadas */
@@ -118,6 +149,7 @@ programa ::= declaracionesGlobales:dg listaFunciones:lf funcionMain:m
         if(dg != null) raiz.agregarHijo(dg);
         if(lf != null) raiz.agregarHijo(lf);
         if(m != null) raiz.agregarHijo(m);
+        imprimirTablaSimbolos();
         RESULT = raiz;
     :}
 ;
@@ -131,12 +163,16 @@ declaracionesGlobales ::= declaracionesGlobales:dsG declaracionGlobal:dG
 ;
 
 
-declaracionGlobal ::= WORLD tipo ID ENDL {:
+declaracionGlobal ::= WORLD tipo:t ID:i ENDL {:
+  scopeActual = "GLOBAL";
+  agregarSimbolo(i, t);
   Nodo declaracionG = new Nodo("Declaración Global");
   RESULT = declaracionG;
 
 :}
-		    | WORLD tipo ID ASSIGN expresion ENDL {:
+		    | WORLD tipo:t ID:i ASSIGN expresion ENDL {:
+        scopeActual = "GLOBAL";
+        agregarSimbolo(i, t);
 		    Nodo declaracionG = new Nodo("Declaración global con asignación ");
 		    RESULT = declaracionG;
 :}
@@ -158,18 +194,31 @@ listaFunciones ::= listaFunciones:lf funcion:f
     {: RESULT = new Nodo("LISTA FUNCIONES"); :}
 ;
 
-funcion ::= GIFT tipo ID LPAREN parametros:p RPAREN bloque:b {:
-  Nodo funcion = new Nodo("Función");
-  funcion.agregarHijo(p);
-  funcion.agregarHijo(b);
-
-  RESULT = funcion; :}
+funcion ::= GIFT tipo:t ID:i {:
+        scopeActual = i;
+        ArrayList<String> tabla = new ArrayList<>();
+        tabla.add("tipo:funcion:" + t);
+        tablaSimbolos.put(scopeActual, tabla);
+    :}
+    LPAREN parametros:p RPAREN bloque:b
+    {:
+    Nodo funcion = new Nodo("Función");
+    funcion.agregarHijo(p);
+    funcion.agregarHijo(b);
+    RESULT = funcion; :}
 ;
 
-funcionMain ::= COAL NAVIDAD LPAREN RPAREN bloque:b {:
-  Nodo funcionMain = new Nodo("Función Main");
-  funcionMain.agregarHijo(b);
-  RESULT = funcionMain; :}
+funcionMain ::= COAL NAVIDAD{:
+        scopeActual = "navidad";
+        ArrayList<String> tabla = new ArrayList<>();
+        tabla.add("tipo:main:coal");
+        tablaSimbolos.put(scopeActual, tabla);
+    :}
+    LPAREN RPAREN bloque:b
+    {:
+    Nodo funcionMain = new Nodo("Función Main");
+    funcionMain.agregarHijo(b);
+    RESULT = funcionMain; :}
 ;
 
 
@@ -181,8 +230,9 @@ parametros ::= {: RESULT = new Nodo("Lista de parámetros vacía"); :}
              RESULT = parametros; :}
 ;
 
-listaParametros ::= tipo ID {: RESULT = new Nodo("Parámetro"); :}
-                  | listaParametros:lp COMMA tipo ID {:
+listaParametros ::= tipo:t ID:i  {: agregarSimbolo(i, t); RESULT = new Nodo("Parámetro");:}
+                  | listaParametros:lp COMMA tipo:t ID:i
+                  {:agregarSimbolo(i, t);
                     Nodo listaParametros = new Nodo("Lista de parámetros");
                     listaParametros.agregarHijo(lp);
 
@@ -222,13 +272,12 @@ sentencia ::= declaracionLocal:s    {: RESULT = s; :}
 
 ;
 
-declaracionLocal ::= LOCAL tipo ID ENDL {:
-                        RESULT = new Nodo("Declaración Local");
-                    :}
+declaracionLocal ::= LOCAL tipo:t ID:i ENDL{: agregarSimbolo(i, t); RESULT = new Nodo("Declaración Local");:}
                    | LOCAL tipo ID ASSIGN expresion:e ENDL {:
-                        Nodo n = new Nodo("Declaración Local con Asignación");
-                        n.agregarHijo(e);
-                        RESULT = n;
+                      agregarSimbolo(i, t);
+                      Nodo n = new Nodo("Declaración Local con Asignación");
+                      n.agregarHijo(e);
+                      RESULT = n;
                     :}
 ;
 
