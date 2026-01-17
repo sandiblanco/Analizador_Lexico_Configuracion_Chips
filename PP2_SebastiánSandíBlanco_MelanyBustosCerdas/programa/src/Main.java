@@ -85,6 +85,23 @@ public class Main {
     }
 
     private static void analisisSintactico(){
+         try {
+        Reader lectorArchivo = new BufferedReader(
+            new InputStreamReader(new FileInputStream(archivoFuente), "UTF-8")
+        );
+
+        Scanner scanner = new Scanner(lectorArchivo);
+        parser parser = new parser(scanner);
+
+        parser.parse();
+
+        System.out.println("\nAnálisis sintáctico finalizado correctamente");
+        System.out.println("Tabla de símbolos generada:");
+        parser.imprimirTablaSimbolos();
+
+    } catch (Exception e) {
+        System.err.println("Error en análisis sintáctico:");
+    }
 //        parser p = new parser(scanner);
 //        Nodo raiz = (Nodo) p.parse().value; // Ejecuta el análisis sintáctico
 
