@@ -40,7 +40,7 @@ import java_cup.runtime.*;
 LineTerminator = \r|\n|\r\n
 InputCharacter = [^\r\n]
 WhiteSpace     = [ \t\f] | {LineTerminator}
-Identifier     = [a-zA-Z][a-zA-Z0-9_]*
+Identifier     = [_a-zA-Z][_a-zA-Z0-9_]*
 Integer        = 0 | [1-9][0-9]*
 Float          = [0-9]+ \. [0-9]+
 String         = \"[^\"]*\"
