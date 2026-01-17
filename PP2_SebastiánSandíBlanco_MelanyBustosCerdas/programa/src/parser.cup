@@ -23,7 +23,13 @@ import src.Nodo;
 import java.util.HashMap;
 import java.util.ArrayList;
 
-/*
+parser code {:
+    public void imprimirTablaSimbolos() {
+
+        action_obj.imprimirTablaSimbolos();
+    }
+:};
+
 action code {:
     HashMap<String, ArrayList<String>> tablaSimbolos = new HashMap<>();
     String scopeActual = "GLOBAL";
@@ -52,7 +58,6 @@ action code {:
         }
     }
 :}
-*/
 
 /* Palabras reservadas */
 terminal String WORLD;     // world
@@ -150,7 +155,7 @@ programa ::= declaracionesGlobales:dg listaFunciones:lf funcionMain:m
         if(dg != null) raiz.agregarHijo(dg);
         if(lf != null) raiz.agregarHijo(lf);
         if(m != null) raiz.agregarHijo(m);
-        //imprimirTablaSimbolos();
+        imprimirTablaSimbolos();
         RESULT = raiz;
     :}
 ;
@@ -166,16 +171,16 @@ declaracionesGlobales ::= declaracionesGlobales:dsG declaracionGlobal:dG
 
 
 declaracionGlobal ::= WORLD tipo:t ID:i ENDL {:
-  //scopeActual = "GLOBAL";
-  //agregarSimbolo(i, t);
-  Nodo declaracionG = new Nodo("Declaración Global");
+  scopeActual = "GLOBAL";
+  agregarSimbolo(i, t);
+  Nodo declaracionG = new Nodo("Declaración Global: " + i);
   RESULT = declaracionG;
 
 :}
 		    | WORLD tipo:t ID:i ASSIGN expresion ENDL {:
-        //scopeActual = "GLOBAL";
-        //agregarSimbolo(i, t);
-		    Nodo declaracionG = new Nodo("Declaración global con asignación ");
+        scopeActual = "GLOBAL";
+        agregarSimbolo(i, t);
+		    Nodo declaracionG = new Nodo("Declaración global con asignación: " + i);
 		    RESULT = declaracionG;
 :}
 ;
@@ -197,18 +202,33 @@ listaFunciones ::= listaFunciones:lf funcion:f
     {: RESULT = new Nodo("LISTA FUNCIONES"); :}
 ;
 
-funcion ::= GIFT tipo ID LPAREN parametros:p RPAREN bloque:b {:
-  Nodo funcion = new Nodo("Función");
-  funcion.agregarHijo(p);
-  funcion.agregarHijo(b);
-
-  RESULT = funcion; :}
+funcion ::= GIFT tipo:t ID:id LPAREN parametros:p RPAREN
+    {:
+        scopeActual = id; // Cambia al ámbito de la función
+        tablaSimbolos.put(scopeActual, new ArrayList<>());
+    :}
+    bloque:b
+    {:
+        Nodo funcion = new Nodo("Función: " + id);
+        funcion.agregarHijo(p);
+        funcion.agregarHijo(b);
+        scopeActual = "GLOBAL"; // Regresa al ámbito global
+        RESULT = funcion;
+    :}
 ;
 
-funcionMain ::= COAL NAVIDAD LPAREN RPAREN bloque:b {:
-  Nodo funcionMain = new Nodo("Función Main");
-  funcionMain.agregarHijo(b);
-  RESULT = funcionMain; :}
+funcionMain ::= COAL NAVIDAD LPAREN RPAREN
+    {:
+        scopeActual = "navidad";
+        tablaSimbolos.put(scopeActual, new ArrayList<>());
+    :}
+    bloque:b
+    {:
+        Nodo funcionMain = new Nodo("Función Main");
+        funcionMain.agregarHijo(b);
+        scopeActual = "GLOBAL";
+        RESULT = funcionMain;
+    :}
 ;
 
 
@@ -220,13 +240,16 @@ parametros ::= {: RESULT = new Nodo("Lista de parámetros vacía"); :}
              RESULT = parametros; :}
 ;
 
-listaParametros ::= tipo ID {: RESULT = new Nodo("Parámetro"); :}
-                  | listaParametros:lp COMMA tipo ID {:
-                    Nodo listaParametros = new Nodo("Lista de parámetros");
-                    listaParametros.agregarHijo(lp);
-
-                    RESULT = listaParametros; :}
-;
+listaParametros ::= tipo:t ID:id {:
+    agregarSimbolo(id, t); // Registra el parámetro
+    RESULT = new Nodo("Parámetro: " + id);
+:}
+| listaParametros:lp COMMA tipo:t ID:id {:
+    agregarSimbolo(id, t);
+    Nodo nodoP = new Nodo("Parámetro: " + id);
+    lp.agregarHijo(nodoP);
+    RESULT = lp;
+:} ;
 
 
 bloque ::= LBRACE listaSentencias:ls RBRACE {:
@@ -268,15 +291,16 @@ sentencia ::= declaracionLocal:s    {: RESULT = s; :}
 
 ;
 
-declaracionLocal ::= LOCAL tipo ID ENDL {:
-                        RESULT = new Nodo("Declaración Local");
-                    :}
-                   | LOCAL tipo ID ASSIGN expresion:e ENDL {:
-                        Nodo n = new Nodo("Declaración Local con Asignación");
-                        n.agregarHijo(e);
-                        RESULT = n;
-                    :}
-;
+declaracionLocal ::= LOCAL tipo:t ID:id ENDL {:
+    agregarSimbolo(id, t); // Registra en el ámbito actual (ej: navidad o suma)
+    RESULT = new Nodo("Declaración Local: " + id);
+:}
+| LOCAL tipo:t ID:id ASSIGN expresion:e ENDL {:
+    agregarSimbolo(id, t);
+    Nodo n = new Nodo("Declaración Local con Asignación: " + id);
+    n.agregarHijo(e);
+    RESULT = n;
+:} ;
 
 declaracionArreglo ::= tipo ID LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ENDL {:
                         RESULT = new Nodo("Declaración Arreglo Bidimensional");
