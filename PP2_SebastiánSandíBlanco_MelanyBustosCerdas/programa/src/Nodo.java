@@ -1,3 +1,14 @@
+/**
+ CURSO: Compiladores e Intérpretes
+ PROYECTO #2: Análisis Sintáctico
+ ESTUDIANTES: Sebastián Sandí Blanco y Melany Bustos Cerdas
+ ARCHIVO: Nodo.java
+
+ OBJETIVO: Clase base para representar los nodos del Árbol Sintáctico.
+ ENTRADA: Nombre del nodo y sus hijos.
+ SALIDA: Estructura jerárquica del programa.
+ */
+
 package src;
 
 import java.util.ArrayList;
