@@ -36,10 +36,15 @@ parser code {:
     public void imprimirTablaSimbolos() {
         action_obj.imprimirTablaSimbolos();
     }
+
+    public void imprimirErrores() {
+            action_obj.imprimirErrores();
+    }
 :};
 
 action code {:
     HashMap<String, ArrayList<String>> tablaSimbolos = new HashMap<>();
+    ArrayList<String> erroresTablaSimbolos = new ArrayList<>();
     String scopeActual = "GLOBAL";
 
     {
@@ -47,8 +52,22 @@ action code {:
     }
 
     void agregarSimbolo(String nombre, String tipo) {
-        ArrayList<String> tabla = tablaSimbolos.get(scopeActual);
-        tabla.add(nombre + ":" + tipo + ":" + scopeActual);
+            ArrayList<String> tabla = tablaSimbolos.get(scopeActual);
+            if (tabla != null) {
+                for (String entrada : tabla) {
+                    if (entrada.startsWith(nombre + ":")) {
+                        erroresTablaSimbolos.add("Error: La variable '" + nombre + "' ya existe en el ámbito " + scopeActual);
+                        return;
+                    }
+                }
+                tabla.add(nombre + ":" + tipo + ":" + scopeActual);
+            }
+    }
+
+    public void imprimirErrores() {
+            for (String err : erroresTablaSimbolos) {
+                System.err.println(err);
+            }
     }
 
 
@@ -278,6 +297,10 @@ listaParametros ::= tipo:t ID:id {:
     agregarSimbolo(id, t);
     lp.agregarHijo(new Nodo("Parámetro: " + id));
     RESULT = lp;
+:}
+| error COMMA tipo ID {:
+    parser.errorDetectado = true;
+    RESULT = new Nodo(">>> ERROR: PARÁMETRO NO VÁLIDO <<<");
 :};
 
 
@@ -415,19 +438,19 @@ valoresArreglo ::= INT_LITERAL  {: RESULT = new Nodo("Valor Entero"); :}
                  | CHAR_LITERAL {: RESULT = new Nodo("Valor Char"); :}
 ;
 
-asignacion ::= ID ASSIGN expresion:e ENDL {:
-                Nodo n = new Nodo("Asignación");
+asignacion ::= ID:id ASSIGN expresion:e ENDL {:
+                Nodo n = new Nodo("Asignación a: " + id);
                 n.agregarHijo(e);
                 RESULT = n;
               :}
-             | ID LBRACKET expresion:e1 RBRACKET ASSIGN expresion:e2 ENDL {:
-                Nodo n = new Nodo("Asignación Arreglo 1D");
+             | ID:id LBRACKET expresion:e1 RBRACKET ASSIGN expresion:e2 ENDL {:
+                Nodo n = new Nodo("Asignación Arreglo 1D a: " + id);
                 n.agregarHijo(e1);
                 n.agregarHijo(e2);
                 RESULT = n;
               :}
-             | ID LBRACKET expresion:e1 RBRACKET LBRACKET expresion:e2 RBRACKET ASSIGN expresion:e3 ENDL {:
-                Nodo n = new Nodo("Asignación Arreglo 2D");
+             | ID:id LBRACKET expresion:e1 RBRACKET LBRACKET expresion:e2 RBRACKET ASSIGN expresion:e3 ENDL {:
+                Nodo n = new Nodo("Asignación Arreglo 2D a: " + id);
                 n.agregarHijo(e1);
                 n.agregarHijo(e2);
                 n.agregarHijo(e3);
@@ -505,6 +528,10 @@ salidaLoop ::= EXIT WHEN expresion:e ENDL {:
                 n.agregarHijo(e);
                 RESULT = n;
               :}
+        | EXIT WHEN error ENDL {:
+            parser.errorDetectado = true;
+            RESULT = new Nodo(">>> ERROR EN LA DECLARACIÓN PARA CERRAR EL CICLO <<<");
+        :}
 ;
 
 sentenciaFor ::= FOR LPAREN forIniciar:fi ENDL expresion:e ENDL forActualizar:fa RPAREN bloque:b {:
