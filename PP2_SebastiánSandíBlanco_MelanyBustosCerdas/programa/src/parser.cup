@@ -129,7 +129,11 @@ terminal Boolean   BOOL_LITERAL;
 terminal String ID; // nombres de variables y funciones
 
 /* No terminales con tipos definidos */
-non terminal Nodo programa, declaracionesGlobales, declaracionGlobal, listaFunciones, funcion, funcionMain, parametros, listaParametros, bloque, listaSentencias, sentencia, declaracionLocal, declaracionArreglo, arregloAsignacion, listaFilas, fila, listaValores, valoresArreglo, asignacion, sentenciaMostrar, sentenciaLeer, sentenciaReturn, sentenciaBreak, sentenciaDecide, casosDecide, casoDecide, casoElse, sentenciaLoop, salidaLoop, sentenciaFor, forIniciar, forActualizar, llamadaFuncion, argumentos, listaArgumentos, expresion, expresionLogica, terminoLogico, factorLogico, expresionRelacional, expresionAritmetica, termino, factor, unario, primario, literal;
+non terminal Nodo programa, declaracionesGlobales, declaracionGlobal, listaFunciones, funcion, funcionMain, parametros, listaParametros, bloque, listaSentencias, 
+sentencia, declaracionLocal, declaracionArreglo, arregloAsignacion, listaFilas, fila, listaValores, valoresArreglo, asignacion, sentenciaMostrar, sentenciaLeer, 
+sentenciaReturn, sentenciaBreak, sentenciaDecide, casosDecide, casoDecide, casoElse, sentenciaLoop, salidaLoop, sentenciaFor, forIniciar, forActualizar, 
+llamadaFuncion, argumentos, listaArgumentos, expresion, expresionLogica, terminoLogico, factorLogico, expresionRelacional, expresionAritmetica, termino, factor, 
+unario, primario, literal, declaracion, declaracionVariable;
 non terminal String tipo, operadorRelacional;
 
 /* Precedencias */
