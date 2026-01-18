@@ -185,14 +185,14 @@ declaracionesGlobales ::= declaracionesGlobales:dsG declaracionGlobal:dG
 declaracionGlobal ::= WORLD tipo:t ID:i ENDL {:
   scopeActual = "GLOBAL";
   agregarSimbolo(i, t);
-  Nodo declaracionG = new Nodo("Declaración Global: " + i);
+  Nodo declaracionG = new Nodo("Declaración global: " + t + " " + i);
   RESULT = declaracionG;
 
 :}
 		    | WORLD tipo:t ID:i ASSIGN expresion ENDL {:
         scopeActual = "GLOBAL";
         agregarSimbolo(i, t);
-		    Nodo declaracionG = new Nodo("Declaración global con asignación: " + i);
+		    Nodo declaracionG = new Nodo("Declaración global con asignación: " + t + " " + i);
 		    RESULT = declaracionG;
         :}
 ;
@@ -255,24 +255,24 @@ funcionMain ::= COAL NAVIDAD LPAREN RPAREN
         :};
 
 
-parametros ::= {: RESULT = new Nodo("Lista de parámetros vacía"); :}
-             | listaParametros:lp {:
-             Nodo parametros = new Nodo("Parámetros");
-             parametros.agregarHijo(lp);
-
-             RESULT = parametros; :}
-;
+parametros ::= {:
+    RESULT = new Nodo("Lista de parámetros vacía");
+:}
+| listaParametros:lp {:
+    RESULT = lp;
+:};
 
 listaParametros ::= tipo:t ID:id {:
-    agregarSimbolo(id, t); // Registra el parámetro
-    RESULT = new Nodo("Parámetro: " + id);
+    agregarSimbolo(id, t);
+    Nodo contenedor = new Nodo("Parámetros");
+    contenedor.agregarHijo(new Nodo("Parámetro: " + id));
+    RESULT = contenedor;
 :}
 | listaParametros:lp COMMA tipo:t ID:id {:
     agregarSimbolo(id, t);
-    Nodo nodoP = new Nodo("Parámetro: " + id);
-    lp.agregarHijo(nodoP);
+    lp.agregarHijo(new Nodo("Parámetro: " + id));
     RESULT = lp;
-:} ;
+:};
 
 
 bloque ::= LBRACE listaSentencias:ls RBRACE {:
@@ -298,13 +298,6 @@ sentencia ::= declaracionLocal:s    {: RESULT = s; :}
                 sent.agregarHijo(e);
                 RESULT = sent;
               :}
-            | sentenciaMostrar:s    {: RESULT = s; :}
-            | sentenciaLeer:s       {: RESULT = s; :}
-            | sentenciaReturn:s     {: RESULT = s; :}
-            | sentenciaBreak:s      {: RESULT = s; :}
-            | sentenciaDecide:s     {: RESULT = s; :}
-            | sentenciaLoop:s       {: RESULT = s; :}
-            | sentenciaFor:s        {: RESULT = s; :}
             | error ENDL
                           {:
                             System.err.println("Error sintáctico detectado. El parser se sincronizará en el siguiente 'endl'.");
@@ -312,33 +305,42 @@ sentencia ::= declaracionLocal:s    {: RESULT = s; :}
                             parser.errorDetectado = true;
                             RESULT = errorNodo;
                           :}
+            | sentenciaMostrar:s    {: RESULT = s; :}
+            | sentenciaLeer:s       {: RESULT = s; :}
+            | sentenciaReturn:s     {: RESULT = s; :}
+            | sentenciaBreak:s      {: RESULT = s; :}
+            | sentenciaDecide:s     {: RESULT = s; :}
+            | sentenciaLoop:s       {: RESULT = s; :}
+            | sentenciaFor:s        {: RESULT = s; :}
 
 ;
 
 declaracionLocal ::=
     LOCAL declaracion:d
     {:
-        Nodo n = new Nodo("Declaración Local");
+        Nodo n = new Nodo("Declaración local");
         n.agregarHijo(d);
         RESULT = n;
     :}
 ;
 
 declaracion ::=
-      declaracionVariable
-    | declaracionArreglo
+      declaracionVariable:dv
+      {: RESULT = dv; :}
+    | declaracionArreglo:da
+      {: RESULT = da; :}
 ;
 
 declaracionVariable ::=
       tipo:t ID:i ENDL
       {:
           agregarSimbolo(i, t);
-          RESULT = new Nodo("Declaración Variable: " + i);
+          RESULT = new Nodo("Declaración de variable: " + t + " " + i);
       :}
     | tipo:t ID:i ASSIGN expresion:e ENDL
       {:
           agregarSimbolo(i, t);
-          Nodo n = new Nodo("Declaración Variable con Asignación: " + i);
+          Nodo n = new Nodo("Declaración de variable con asignación: " + t + " " + i);
           n.agregarHijo(e);
           RESULT = n;
       :}
@@ -346,11 +348,11 @@ declaracionVariable ::=
 
 declaracionArreglo ::= tipo:t ID:i LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ENDL {:
                          agregarSimbolo(i, t + "[ ][ ]");
-                        RESULT = new Nodo("Declaración Arreglo Bidimensional");
+                        RESULT = new Nodo("Declaración arreglo bidimensional: " + i + " " + t + "[ ][ ]");
                     :}
                      | tipo:t ID:i LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ASSIGN arregloAsignacion:a ENDL {:
                         agregarSimbolo(i, t + "[ ][ ]");
-                        Nodo n = new Nodo("Declaración Arreglo con Asignación");
+                        Nodo n = new Nodo("Declaración de arreglo con asignación " + i + " " + t + "[ ][ ]");
                         n.agregarHijo(a);
                         RESULT = n;
                     :}
@@ -451,6 +453,14 @@ casoDecide ::= expresion:e ARROW bloque:b {:
                 n.agregarHijo(b);
                 RESULT = n;
               :}
+              |
+              LPAREN error RPAREN ARROW bloque:b
+                  {:
+                      parser.errorDetectado = true;
+                      Nodo n = new Nodo("CASO (ERROR EN CONDICIÓN)");
+                      n.agregarHijo(b); // se rescata el cuerpo del bloque
+                      RESULT = n;
+                  :}
 ;
 
 casoElse ::= {: RESULT = new Nodo("Sin caso Else"); :}
