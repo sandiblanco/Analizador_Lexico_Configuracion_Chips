@@ -24,8 +24,16 @@ import java.util.HashMap;
 import java.util.ArrayList;
 
 parser code {:
-    public void imprimirTablaSimbolos() {
 
+    public boolean errorDetectado = false; //esto es para indicar si la estructura es válida o no
+
+    public void errorEnGramatica(Symbol s) {
+            errorDetectado = true;
+            System.err.println("Error sintáctico: Token inesperado '" + s.value +
+                               "' en la línea " + (s.left + 1) + ", columna " + (s.right + 1));
+    }
+
+    public void imprimirTablaSimbolos() {
         action_obj.imprimirTablaSimbolos();
     }
 :};
@@ -154,6 +162,12 @@ programa ::= declaracionesGlobales:dg listaFunciones:lf funcionMain:m
         if(dg != null) raiz.agregarHijo(dg);
         if(lf != null) raiz.agregarHijo(lf);
         if(m != null) raiz.agregarHijo(m);
+
+        if(parser.errorDetectado) {
+                    System.out.println("\n[ERROR] Estructura NO válida según la gramática.");
+                } else {
+                    System.out.println("\n[ÉXITO] Estructura válida según la gramática.");
+                }
         RESULT = raiz;
     :}
 ;
@@ -180,7 +194,7 @@ declaracionGlobal ::= WORLD tipo:t ID:i ENDL {:
         agregarSimbolo(i, t);
 		    Nodo declaracionG = new Nodo("Declaración global con asignación: " + i);
 		    RESULT = declaracionG;
-:}
+        :}
 ;
 
 tipo ::= INT     {: RESULT = "int"; :}
@@ -215,6 +229,10 @@ funcion ::= GIFT tipo:t ID:id
         scopeActual = "GLOBAL"; // Regresa al ámbito global
         RESULT = funcion;
     :}
+    | error RBRACE {:
+            parser.errorDetectado = true;
+            RESULT = new Nodo(">>> ERROR EN ESTRUCTURA DE FUNCIÓN <<<");
+          :}
 ;
 
 funcionMain ::= COAL NAVIDAD LPAREN RPAREN
@@ -231,7 +249,10 @@ funcionMain ::= COAL NAVIDAD LPAREN RPAREN
         scopeActual = "GLOBAL";
         RESULT = funcionMain;
     :}
-;
+    | error {:
+            //parser.errorDetectado = true;
+            RESULT = new Nodo(">>> ERROR CRÍTICO EN FUNCIÓN MAIN <<<");
+        :};
 
 
 parametros ::= {: RESULT = new Nodo("Lista de parámetros vacía"); :}
@@ -288,6 +309,7 @@ sentencia ::= declaracionLocal:s    {: RESULT = s; :}
                           {:
                             System.err.println("Error sintáctico detectado. El parser se sincronizará en el siguiente 'endl'.");
                             Nodo errorNodo = new Nodo(">>> ERROR SINTÁCTICO <<<");
+                            parser.errorDetectado = true;
                             RESULT = errorNodo;
                           :}
 
