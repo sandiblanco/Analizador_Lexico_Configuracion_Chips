@@ -25,6 +25,12 @@ public class Main {
     private static final String archivoDeErrores = "lectura/pruebaErrores.txt";
     private static final String archivoSalida = "lectura/tokens_encontrados.txt";
 
+    // Colores
+    public static final String RESET = "\u001B[0m";
+    public static final String YELLOW = "\u001B[33m";
+    public static final String CYAN = "\u001B[36m";
+    public static final String GREEN = "\u001B[32m";
+
     public static void main(String[] args) throws Exception {
         menuOpciones();
     }
@@ -94,12 +100,13 @@ public class Main {
 
             try {
                 parser.parse();
+                parser.imprimirErrores();
             } catch (Exception e) {
                 System.err.println("Se detectaron errores durante el análisis sintáctico.");
             } finally {
-                System.out.println("\nAnálisis sintáctico finalizado");
-                System.out.println("Tabla de símbolos generada:");
+                System.out.println("\n--- TABLA DE SÍMBOLOS ---");
                 parser.imprimirTablaSimbolos();
+                System.out.println("\nAnálisis sintáctico finalizado");
             }
 
         } catch (Exception e) {
@@ -110,16 +117,15 @@ public class Main {
     private static void arbolSintactico(){
         try {
             // Reiniciamos el lector para que el parser tenga tokens que leer
-            Reader lector = new BufferedReader(new InputStreamReader(new FileInputStream(archivoFuente), "UTF-8"));
+            Reader lector = new BufferedReader(new InputStreamReader(new FileInputStream(archivoDeErrores), "UTF-8"));
             generados.Scanner lexer = new generados.Scanner(lector);
             generados.parser p = new generados.parser(lexer);
 
-            System.out.println("\n--- INICIANDO ANÁLISIS SINTÁCTICO ---");
+            System.out.println("\n--- IMPRIMIENDO ÁRBOL SINTÁCTICO ---\n");
             Nodo raiz = (Nodo) p.parse().value;
 
             if (raiz != null) {
-                System.out.println("[ÉXITO] Estructura válida según la gramática.");
-                raiz.imprimir("");
+                raiz.imprimir("", true);
             }
         } catch (Exception e) {
             System.err.println("Error sintáctico: " + e.getMessage());
@@ -129,31 +135,65 @@ public class Main {
 
 
     private static void menuOpciones(){
+
         java.util.Scanner teclado = new java.util.Scanner(System.in);
-        int opcion;
+        int opcion = -1;
         do {
-            System.out.println("--- COMPILADOR CHIPS ---\n");
-            System.out.println("1. Análisis Léxico (Lista de Tokens)");
-            System.out.println("2. Análisis Sintáctico (Validación y Árbol)");
-            System.out.println("3. Salir");
-            System.out.print("Seleccione una opción: ");
-            opcion = teclado.nextInt();
+            System.out.println("\n" + YELLOW + "========================================" + RESET);
+            System.out.println(CYAN + "          --- COMPILADOR CHIPS ---" + RESET);
+            System.out.println(YELLOW + "========================================" + RESET);
+            System.out.println("1. " + GREEN + "Análisis Léxico" + RESET + " (Lista de Tokens)");
+            System.out.println("2. " + GREEN + "Análisis Sintáctico" + RESET + " (Tabla de símbolos)");
+            System.out.println("3. " + GREEN + "Árbol Sintáctico" + RESET);
+            System.out.println("4. Salir");
+            System.out.print("\nSeleccione una opción: ");
+            try {
+                opcion = teclado.nextInt();
+            } catch (Exception e) {
+                System.out.println("Por favor, ingrese un número válido.");
+                teclado.nextLine(); // Limpiar el buffer
+                continue;
+            }
 
             switch (opcion) {
                 case 1:
                     analisisLexico();
+                    esperarRegreso(teclado);
                     break;
                 case 2:
                     analisisSintactico();
+                    esperarRegreso(teclado);
                     break;
                 case 3:
-                    System.out.println("Saliendo...");
+                    arbolSintactico();
+                    esperarRegreso(teclado);
+                    break;
+                case 4:
+                    System.out.println("Cerrando el sistema...");
                     break;
                 default:
                     System.out.println("Opción no válida.");
             }
-        } while (opcion != 3);
+        } while (opcion != 4);
     }
+
+    // Función para que el usuario tenga que presionar 0 para volver al menú
+    private static void esperarRegreso(java.util.Scanner teclado) {
+        int volver = -1;
+        System.out.println("\n" + YELLOW + "----------------------------------------" + RESET);
+        System.out.print("Presione " + CYAN + "0" + RESET + " para volver al menú principal: ");
+
+        while (volver != 0) {
+            try {
+                volver = teclado.nextInt();
+                if (volver != 0) System.out.print("Entrada incorrecta. Presione 0: ");
+            } catch (Exception e) {
+                System.out.print("Entrada incorrecta. Presione 0: ");
+                teclado.nextLine();
+            }
+        }
+    }
+
     //Traducir el ID numérico al nombre del token
     private static String obtenerNombreToken(int id) {
         try {
