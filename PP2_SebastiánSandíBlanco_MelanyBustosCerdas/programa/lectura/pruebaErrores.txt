@@ -1,14 +1,42 @@
-| --- Prueba de Errores Léxicos ---
+world string _s1_ endl |comentario linea###
+world int x = 2 endl
+world x endl          |--- ERROR 1: (Sintáctico) Declaración global sin tipo ---
 
-world 10variable = 5 endl    | Error: ID inicia con número
-local $precio = 100 endl     | Error: Carácter ilegal $
-local pi = 3. endl           | Error: Flotante incompleto
-local error_float = 3.14.15  | Error: Demasiados puntos
+є !@#$$%^& multilinea
+  э
 
-local saludo = "Hola mundo   | Error: String sin cerrar
-show  endl
+gift float _mi_  ¿ int _dif_, char _otra_ ? ¡
+  local int _otra_ endl     |--- ERROR 2: (Semántico) Redeclaración de parámetro ---
+  local int miArr[2][2] endl
+  local int miArr[2][2] = ¡¡1,2!¡3,4!! endl |--- ERROR 3: (Semántico) Redeclaración de arreglo ---
+  
+  local _str_ = "Error" endl |--- ERROR 4: (Sintáctico) Falta tipo en local (Regra ID ENDL) ---
+  
+  local string _s2_         |--- ERROR 5: (Sintáctico) Falta el endl aquí ---
+  
+  for ¿ int i = 0 endl i < 10 endl ++i ?
+   ¡
+   loop
+      _var_2 = _var_2 - 1 endl
+   exit when ¿ _var2_ > 12.2 ? endl
+   end loop endl
 
-| Símbolos no permitidos en el alfabeto del proyecto
-# & { }
+   decide of
+   ¿ false @ 3 > 4 ? ->
+    ¡
+    show ¿ "entra al if" ? endl
+    !
+   end decide endl
+  
+  return 1 endl
+  !
 
-local var_valida = 20 endl   | Esto debe leerse bien después de los errores
+gift int funcionDePrueba ¿ int _dif_ ? ¡
+  local int x = 10 endl
+  _otra_ = 5                 |--- ERROR 6: (Sintáctico) Asignación sin ENDL ---
+  return x endl
+!
+
+coal navidad ¿ ? ¡
+  return -5.6 endl
+!
