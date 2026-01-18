@@ -195,7 +195,13 @@ declaracionGlobal ::= WORLD tipo:t ID:i ENDL {:
 		    Nodo declaracionG = new Nodo("Declaración global con asignación: " + t + " " + i);
 		    RESULT = declaracionG;
         :}
+        | WORLD error ENDL {:
+            parser.errorDetectado = true;
+            RESULT = new Nodo(">>> ERROR EN DECLARACIÓN GLOBAL <<<");
+        :}
+
 ;
+
 
 tipo ::= INT     {: RESULT = "int"; :}
        | FLOAT   {: RESULT = "float"; :}
@@ -250,7 +256,7 @@ funcionMain ::= COAL NAVIDAD LPAREN RPAREN
         RESULT = funcionMain;
     :}
     | error {:
-            //parser.errorDetectado = true;
+            parser.errorDetectado = true;
             RESULT = new Nodo(">>> ERROR CRÍTICO EN FUNCIÓN MAIN <<<");
         :};
 
@@ -300,8 +306,7 @@ sentencia ::= declaracionLocal:s    {: RESULT = s; :}
               :}
             | error ENDL
                           {:
-                            System.err.println("Error sintáctico detectado. El parser se sincronizará en el siguiente 'endl'.");
-                            Nodo errorNodo = new Nodo(">>> ERROR SINTÁCTICO <<<");
+                            Nodo errorNodo = new Nodo(">>> ERROR SINTÁCTICO <<< ");
                             parser.errorDetectado = true;
                             RESULT = errorNodo;
                           :}
@@ -322,6 +327,12 @@ declaracionLocal ::=
         n.agregarHijo(d);
         RESULT = n;
     :}
+    | LOCAL error
+                  {:
+                    Nodo errorNodo = new Nodo(">>> ERROR DECLARANDO VARIABLE LOCAL <<< ");
+                    parser.errorDetectado = true;
+                    RESULT = errorNodo;
+                  :}
 ;
 
 declaracion ::=
@@ -337,25 +348,31 @@ declaracionVariable ::=
           agregarSimbolo(i, t);
           RESULT = new Nodo("Declaración de variable: " + t + " " + i);
       :}
-    | tipo:t ID:i ASSIGN expresion:e ENDL
-      {:
-          agregarSimbolo(i, t);
-          Nodo n = new Nodo("Declaración de variable con asignación: " + t + " " + i);
-          n.agregarHijo(e);
-          RESULT = n;
-      :}
+      | tipo:t ID:i ASSIGN expresion:e ENDL
+        {:
+            agregarSimbolo(i, t);
+            Nodo n = new Nodo("Declaración de variable con asignación: " + t + " " + i);
+            n.agregarHijo(e);
+            RESULT = n;
+        :}
+      | ID ENDL
+                   {:
+                     Nodo errorNodo = new Nodo(">>> ERROR, DEBE ASIGNAR UN TIPO AL IDENTIFICADOR <<< ");
+                     parser.errorDetectado = true;
+                     RESULT = errorNodo;
+                   :}
 ;
 
 declaracionArreglo ::= tipo:t ID:i LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ENDL {:
                          agregarSimbolo(i, t + "[ ][ ]");
                         RESULT = new Nodo("Declaración arreglo bidimensional: " + i + " " + t + "[ ][ ]");
-                    :}
-                     | tipo:t ID:i LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ASSIGN arregloAsignacion:a ENDL {:
-                        agregarSimbolo(i, t + "[ ][ ]");
-                        Nodo n = new Nodo("Declaración de arreglo con asignación " + i + " " + t + "[ ][ ]");
-                        n.agregarHijo(a);
-                        RESULT = n;
-                    :}
+:}
+   | tipo:t ID:i LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ASSIGN arregloAsignacion:a ENDL {:
+      agregarSimbolo(i, t + "[ ][ ]");
+      Nodo n = new Nodo("Declaración de arreglo con asignación " + i + " " + t + "[ ][ ]");
+      n.agregarHijo(a);
+      RESULT = n;
+:}
 ;
 
 arregloAsignacion ::= LBRACE listaFilas:lf RBRACE {:
@@ -416,6 +433,10 @@ asignacion ::= ID ASSIGN expresion:e ENDL {:
                 n.agregarHijo(e3);
                 RESULT = n;
               :}
+             | ID ASSIGN error ENDL {:
+                parser.errorDetectado = true;
+                RESULT = new Nodo(">>> ERROR ASIGNANDO <<<");
+             :}
 ;
 
 sentenciaMostrar ::= SHOW listaArgumentos:la ENDL {:
@@ -588,7 +609,7 @@ factorLogico ::= NOT factorLogico:f {:
 ;
 
 expresionRelacional ::= expresionAritmetica:e1 operadorRelacional:op expresionAritmetica:e2 {:
-                            Nodo n = new Nodo("Expresión Relacional");
+                            Nodo n = new Nodo("Expresión Relacional: " + e1.getName() + " " + op + " " + e2.getName());
                             n.agregarHijo(e1);
                             n.agregarHijo(new Nodo("operador relacional"));
                             n.agregarHijo(e2);
