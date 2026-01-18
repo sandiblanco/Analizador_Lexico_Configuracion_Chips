@@ -30,10 +30,14 @@ public class Nodo {
     }
 
     // Imprimir el árbol con sangrías
-    public void imprimir(String sangria) {
-        System.out.println(sangria + "|-- " + nombre);
-        for (Nodo hijo : hijos) {
-            hijo.imprimir(sangria + "    ");
+    public void imprimir(String prefijo, boolean esUltimo) {
+        System.out.println(prefijo + (esUltimo ? "└── " : "├── ") + nombre);
+
+        for (int i = 0; i < hijos.size(); i++) {
+            boolean ultimoHijo = (i == hijos.size() - 1);
+            // Si no es el último hijo del padre entonces la línea sigue hacia abajo
+            String nuevoPrefijo = prefijo + (esUltimo ? "    " : "│   ");
+            hijos.get(i).imprimir(nuevoPrefijo, ultimoHijo);
         }
     }
 }
