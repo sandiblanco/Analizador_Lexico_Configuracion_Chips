@@ -117,7 +117,7 @@ public class Main {
     private static void arbolSintactico(){
         try {
             // Reiniciamos el lector para que el parser tenga tokens que leer
-            Reader lector = new BufferedReader(new InputStreamReader(new FileInputStream(archivoDeErrores), "UTF-8"));
+            Reader lector = new BufferedReader(new InputStreamReader(new FileInputStream(archivoFuente), "UTF-8"));
             generados.Scanner lexer = new generados.Scanner(lector);
             generados.parser p = new generados.parser(lexer);
 
