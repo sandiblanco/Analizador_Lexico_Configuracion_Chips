@@ -198,7 +198,9 @@ listaFunciones ::= listaFunciones:lf funcion:f
 
 funcion ::= GIFT tipo:t ID:id
     {:
-        scopeActual = id; // Cambia al ámbito de la función
+        scopeActual = "GLOBAL";
+        agregarSimbolo(id, t + " (función)");
+        scopeActual = id;
         tablaSimbolos.put(scopeActual, new ArrayList<>());
     :}
     LPAREN parametros:p RPAREN bloque:b
@@ -213,6 +215,8 @@ funcion ::= GIFT tipo:t ID:id
 
 funcionMain ::= COAL NAVIDAD LPAREN RPAREN
     {:
+        scopeActual = "GLOBAL";
+        agregarSimbolo("navidad", "coal (función)");
         scopeActual = "navidad";
         tablaSimbolos.put(scopeActual, new ArrayList<>());
     :}
@@ -285,21 +289,41 @@ sentencia ::= declaracionLocal:s    {: RESULT = s; :}
 
 ;
 
-declaracionLocal ::= LOCAL tipo:t ID:id ENDL {:
-    agregarSimbolo(id, t); // Registra en el ámbito actual (ej: navidad o suma)
-    RESULT = new Nodo("Declaración Local: " + id);
-:}
-| LOCAL tipo:t ID:id ASSIGN expresion:e ENDL {:
-    agregarSimbolo(id, t);
-    Nodo n = new Nodo("Declaración Local con Asignación: " + id);
-    n.agregarHijo(e);
-    RESULT = n;
-:} ;
+declaracionLocal ::=
+    LOCAL declaracion:d
+    {:
+        Nodo n = new Nodo("Declaración Local");
+        n.agregarHijo(d);
+        RESULT = n;
+    :}
+;
 
-declaracionArreglo ::= tipo ID LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ENDL {:
+declaracion ::=
+      declaracionVariable
+    | declaracionArreglo
+;
+
+declaracionVariable ::=
+      tipo:t ID:i ENDL
+      {:
+          agregarSimbolo(i, t);
+          RESULT = new Nodo("Declaración Variable: " + i);
+      :}
+    | tipo:t ID:i ASSIGN expresion:e ENDL
+      {:
+          agregarSimbolo(i, t);
+          Nodo n = new Nodo("Declaración Variable con Asignación: " + i);
+          n.agregarHijo(e);
+          RESULT = n;
+      :}
+;
+
+declaracionArreglo ::= tipo:t ID:i LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ENDL {:
+                         agregarSimbolo(i, t + "[ ][ ]");
                         RESULT = new Nodo("Declaración Arreglo Bidimensional");
                     :}
-                     | tipo ID LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ASSIGN arregloAsignacion:a ENDL {:
+                     | tipo:t ID:i LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ASSIGN arregloAsignacion:a ENDL {:
+                        agregarSimbolo(i, t + "[ ][ ]");
                         Nodo n = new Nodo("Declaración Arreglo con Asignación");
                         n.agregarHijo(a);
                         RESULT = n;
