@@ -22,6 +22,7 @@ import java_cup.runtime.*;
 import src.Nodo;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 parser code {:
 
@@ -43,42 +44,112 @@ parser code {:
 :};
 
 action code {:
-    HashMap<String, ArrayList<String>> tablaSimbolos = new HashMap<>();
+    LinkedHashMap<String, ArrayList<String>> tablaSimbolos = new LinkedHashMap<>();
     ArrayList<String> erroresTablaSimbolos = new ArrayList<>();
+
+
     String scopeActual = "GLOBAL";
+    int contadorBloques = 0;
+    int contadorFor = 0;
+    int contadorLoop = 0;
+    int contadorDecide = 0;
+
+
+    HashMap<String, String> raizScope = new HashMap<>();
+    HashMap<String, String> nombreParaScope = new HashMap<>();
+
 
     {
         tablaSimbolos.put("GLOBAL", new ArrayList<>());
+        raizScope.put("GLOBAL", null);
+        nombreParaScope.put("GLOBAL", "GLOBAL");
     }
+
+
+    void entrarFuncion() {
+        contadorBloques = 0;
+        contadorFor = 0;
+        contadorLoop = 0;
+        contadorDecide = 0;
+        if(scopeActual == null) scopeActual = "GLOBAL";
+    }
+
+    void agregarFuncion(String nombre, String tipo) {
+
+        agregarSimbolo(nombre, tipo + " (función)");
+        String funcScope = scopeActual + "." + nombre;
+        tablaSimbolos.put(funcScope, new ArrayList<>());
+        nombreParaScope.put(funcScope, nombre);
+        scopeActual = funcScope;
+    }
+
+
+    void entrarBloque(String tipoBloque) {
+        String nombreBloque = tipoBloque;
+        switch(tipoBloque) {
+            case "for": contadorFor++; nombreBloque += contadorFor; break;
+            case "loop": contadorLoop++; nombreBloque += contadorLoop; break;
+            case "decide": contadorDecide++; nombreBloque += contadorDecide; break;
+            case "bloque": contadorBloques++; nombreBloque += contadorBloques; break;
+        }
+        String nuevoScope = scopeActual + "." + nombreBloque;
+        raizScope.put(nuevoScope, scopeActual);
+        scopeActual = nuevoScope;
+        tablaSimbolos.put(scopeActual, new ArrayList<>());
+        nombreParaScope.put(scopeActual, nombreBloque);
+    }
+
+    void salirBloque() {
+        String padre = raizScope.get(scopeActual);
+        if (padre != null) {
+            scopeActual = padre;
+        }
+    }
+
 
     void agregarSimbolo(String nombre, String tipo) {
-            ArrayList<String> tabla = tablaSimbolos.get(scopeActual);
-            if (tabla != null) {
-                for (String entrada : tabla) {
-                    if (entrada.startsWith(nombre + ":")) {
-                        erroresTablaSimbolos.add("Error: La variable '" + nombre + "' ya existe en el ámbito " + scopeActual);
-                        return;
-                    }
+        ArrayList<String> tabla = tablaSimbolos.get(scopeActual);
+        if (tabla != null) {
+            for (String entrada : tabla) {
+                if (entrada.startsWith(nombre + ":")) {
+                    erroresTablaSimbolos.add(
+                        "Error: La variable '" + nombre + "' ya existe en el ámbito " + scopeActual
+                    );
+                    return;
                 }
-                tabla.add(nombre + ":" + tipo + ":" + scopeActual);
             }
-    }
-
-    public void imprimirErrores() {
-            for (String err : erroresTablaSimbolos) {
-                System.err.println(err);
-            }
+            tabla.add(nombre + ":" + tipo);
+        }
     }
 
 
     public void imprimirTablaSimbolos() {
+        System.out.println("\n  TABLA DE SÍMBOLOS  ");
         for (String scope : tablaSimbolos.keySet()) {
-            System.out.println("\nTabla de símbolos: " + scope);
-            for (String s : tablaSimbolos.get(scope)) {
-                System.out.println("  " + s);
+            String mostrarScope;
+            if (scope.equals("GLOBAL")) {
+                mostrarScope = "GLOBAL";
+            } else {
+                mostrarScope = scope.replace(".", ".");
+            }
+            System.out.println("\nScope: " + mostrarScope);
+            ArrayList<String> tabla = tablaSimbolos.get(scope);
+            if (tabla.isEmpty()) {
+                System.out.println("  (ninguna declaración)");
+            } else {
+                for (String s : tabla) {
+                    System.out.println("  " + s);
+                }
             }
         }
     }
+
+    public void imprimirErrores() {
+        for (String err : erroresTablaSimbolos) {
+            System.err.println(err);
+        }
+    }
+
 :}
 
 /* Palabras reservadas */
@@ -239,19 +310,17 @@ listaFunciones ::= listaFunciones:lf funcion:f
     {: RESULT = new Nodo("LISTA FUNCIONES"); :}
 ;
 
-funcion ::= GIFT tipo:t ID:id
+funcion ::= GIFT tipo:t ID:i
     {:
-        scopeActual = "GLOBAL";
-        agregarSimbolo(id, t + " (función)");
-        scopeActual = id;
-        tablaSimbolos.put(scopeActual, new ArrayList<>());
+        entrarFuncion();
+        agregarFuncion(i,t);
     :}
     LPAREN parametros:p RPAREN bloque:b
     {:
-        Nodo funcion = new Nodo("Función: " + id);
+        Nodo funcion = new Nodo("Función: " + i);
         funcion.agregarHijo(p);
         funcion.agregarHijo(b);
-        scopeActual = "GLOBAL"; // Regresa al ámbito global
+        scopeActual = raizScope.get(scopeActual);
         RESULT = funcion;
     :}
     | error RBRACE {:
@@ -262,16 +331,15 @@ funcion ::= GIFT tipo:t ID:id
 
 funcionMain ::= COAL NAVIDAD LPAREN RPAREN
     {:
-        scopeActual = "GLOBAL";
-        agregarSimbolo("navidad", "coal (función)");
-        scopeActual = "navidad";
-        tablaSimbolos.put(scopeActual, new ArrayList<>());
+        entrarFuncion();
+        agregarFuncion("navidad","coal");
+
     :}
     bloque:b
     {:
         Nodo funcionMain = new Nodo("Función Main");
         funcionMain.agregarHijo(b);
-        scopeActual = "GLOBAL";
+        scopeActual = raizScope.get(scopeActual);
         RESULT = funcionMain;
     :}
     | error {:
@@ -287,15 +355,15 @@ parametros ::= {:
     RESULT = lp;
 :};
 
-listaParametros ::= tipo:t ID:id {:
-    agregarSimbolo(id, t);
+listaParametros ::= tipo:t ID:i {:
+    agregarSimbolo(i, t);
     Nodo contenedor = new Nodo("Parámetros");
-    contenedor.agregarHijo(new Nodo("Parámetro: " + id));
+    contenedor.agregarHijo(new Nodo("Parámetro: " + i));
     RESULT = contenedor;
 :}
-| listaParametros:lp COMMA tipo:t ID:id {:
-    agregarSimbolo(id, t);
-    lp.agregarHijo(new Nodo("Parámetro: " + id));
+| listaParametros:lp COMMA tipo:t ID:i {:
+    agregarSimbolo(i, t);
+    lp.agregarHijo(new Nodo("Parámetro: " + i));
     RESULT = lp;
 :}
 | error COMMA tipo ID {:
@@ -304,9 +372,13 @@ listaParametros ::= tipo:t ID:id {:
 :};
 
 
-bloque ::= LBRACE listaSentencias:ls RBRACE {:
+bloque ::= LBRACE {:
+        entrarBloque("bloque");  // entra a bloque local
+    :}
+    listaSentencias:ls RBRACE {:
     Nodo bloque = new Nodo("Bloque");
     bloque.agregarHijo(ls);
+    salirBloque();
     RESULT = bloque;
 :};
 
@@ -438,19 +510,19 @@ valoresArreglo ::= INT_LITERAL  {: RESULT = new Nodo("Valor Entero"); :}
                  | CHAR_LITERAL {: RESULT = new Nodo("Valor Char"); :}
 ;
 
-asignacion ::= ID:id ASSIGN expresion:e ENDL {:
-                Nodo n = new Nodo("Asignación a: " + id);
+asignacion ::= ID:i ASSIGN expresion:e ENDL {:
+                Nodo n = new Nodo("Asignación a: " + i);
                 n.agregarHijo(e);
                 RESULT = n;
               :}
-             | ID:id LBRACKET expresion:e1 RBRACKET ASSIGN expresion:e2 ENDL {:
-                Nodo n = new Nodo("Asignación Arreglo 1D a: " + id);
+             | ID:i LBRACKET expresion:e1 RBRACKET ASSIGN expresion:e2 ENDL {:
+                Nodo n = new Nodo("Asignación Arreglo 1D a: " + i);
                 n.agregarHijo(e1);
                 n.agregarHijo(e2);
                 RESULT = n;
               :}
-             | ID:id LBRACKET expresion:e1 RBRACKET LBRACKET expresion:e2 RBRACKET ASSIGN expresion:e3 ENDL {:
-                Nodo n = new Nodo("Asignación Arreglo 2D a: " + id);
+             | ID:i LBRACKET expresion:e1 RBRACKET LBRACKET expresion:e2 RBRACKET ASSIGN expresion:e3 ENDL {:
+                Nodo n = new Nodo("Asignación Arreglo 2D a: " + i);
                 n.agregarHijo(e1);
                 n.agregarHijo(e2);
                 n.agregarHijo(e3);
@@ -472,11 +544,14 @@ sentenciaMostrar ::= SHOW listaArgumentos:la ENDL {:
 sentenciaLeer ::= GET ID ENDL {: RESULT = new Nodo("Sentencia Get"); :}
 ;
 
-sentenciaDecide ::= DECIDE OF casosDecide:cd casoElse:ce END DECIDE ENDL {:
-                        Nodo n = new Nodo("Sentencia Decide");
-                        n.agregarHijo(cd);
-                        n.agregarHijo(ce);
-                        RESULT = n;
+sentenciaDecide ::= DECIDE OF {:
+                  entrarBloque("decide");:}
+                  casosDecide:cd casoElse:ce END DECIDE ENDL {:
+                  Nodo n = new Nodo("Sentencia Decide");
+                  n.agregarHijo(cd);
+                  n.agregarHijo(ce);
+                  salirBloque();
+                  RESULT = n;
                     :}
 ;
 
@@ -515,10 +590,13 @@ casoElse ::= {: RESULT = new Nodo("Sin caso Else"); :}
              :}
 ;
 
-sentenciaLoop ::= LOOP listaSentencias:ls salidaLoop:sl END LOOP ENDL {:
+sentenciaLoop ::= LOOP {:
+                entrarBloque("loop");:}
+                listaSentencias:ls salidaLoop:sl END LOOP ENDL {:
                     Nodo n = new Nodo("Sentencia Loop");
                     n.agregarHijo(ls);
                     n.agregarHijo(sl);
+                    salirBloque();
                     RESULT = n;
                   :}
 ;
@@ -534,14 +612,17 @@ salidaLoop ::= EXIT WHEN expresion:e ENDL {:
         :}
 ;
 
-sentenciaFor ::= FOR LPAREN forIniciar:fi ENDL expresion:e ENDL forActualizar:fa RPAREN bloque:b {:
-                    Nodo n = new Nodo("Sentencia For");
-                    n.agregarHijo(fi);
-                    n.agregarHijo(e);
-                    n.agregarHijo(fa);
-                    n.agregarHijo(b);
-                    RESULT = n;
-                 :}
+sentenciaFor ::= FOR LPAREN forIniciar:fi ENDL expresion:e ENDL forActualizar:fa RPAREN {:
+               entrarBloque("for");:}
+               bloque:b {:
+               Nodo n = new Nodo("Sentencia For");
+               n.agregarHijo(fi);
+               n.agregarHijo(e);
+               n.agregarHijo(fa);
+               n.agregarHijo(b);
+               salirBloque();
+               RESULT = n;
+:}
 ;
 
 
@@ -568,9 +649,7 @@ forActualizar ::= tipo ID ASSIGN expresion:e
           RESULT = n;
       :}
     | INC ID {: RESULT = new Nodo("Incremento"); :}
-    | ID INC {: RESULT = new Nodo("Incremento"); :}
     | DEC ID {: RESULT = new Nodo("Decremento"); :}
-    | ID DEC {: RESULT = new Nodo("Decremento"); :}
 ;
 
 
