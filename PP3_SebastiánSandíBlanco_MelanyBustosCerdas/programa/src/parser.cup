@@ -1,6 +1,6 @@
 /*
 CURSO: Compiladores e Intérpretes
-PROYECTO #2: Análisis Sintáctico
+PROYECTO #3: Análisis Semántico
 ESTUDIANTES: Sebastián Sandí Blanco y Melany Bustos Cerdas
 ARCHIVO: parser.cup
 
@@ -47,7 +47,7 @@ action code {:
     LinkedHashMap<String, ArrayList<String>> tablaSimbolos = new LinkedHashMap<>();
     ArrayList<String> erroresTablaSimbolos = new ArrayList<>();
 
-    String ultimoScopeCreado = null;
+
     String scopeActual = "GLOBAL";
     int contadorBloques = 0;
     int contadorFor = 0;
@@ -57,10 +57,13 @@ action code {:
 
     HashMap<String, String> raizScope = new HashMap<>();
     HashMap<String, String> nombreParaScope = new HashMap<>();
-    tablaSimbolos.put("GLOBAL", new ArrayList<>());
-    raizScope.put("GLOBAL", null);
-    nombreParaScope.put("GLOBAL", "GLOBAL");
 
+
+    {
+        tablaSimbolos.put("GLOBAL", new ArrayList<>());
+        raizScope.put("GLOBAL", null);
+        nombreParaScope.put("GLOBAL", "GLOBAL");
+    }
 
 
     void entrarFuncion() {
@@ -68,18 +71,17 @@ action code {:
         contadorFor = 0;
         contadorLoop = 0;
         contadorDecide = 0;
-
+        if(scopeActual == null) scopeActual = "GLOBAL";
     }
 
     void agregarFuncion(String nombre, String tipo) {
 
-        agregarSimbolo(nombre, tipo + " (función)"); // Se guarda en tabla de símbolos la función en el scope actual
-        // Crear el scope de la función
-        ultimoScopeCreado = scopeActual + "." + nombre;
-        tablaSimbolos.put(ultimoScopeCreado, new ArrayList<>());
-        raizScope.put(ultimoScopeCreado, scopeActual);
-        nombreParaScope.put(ultimoScopeCreado, nombre);
-
+        agregarSimbolo(nombre, tipo + " (función)");
+        String funcScope = scopeActual + "." + nombre;
+        raizScope.put(funcScope, scopeActual);
+        tablaSimbolos.put(funcScope, new ArrayList<>());
+        nombreParaScope.put(funcScope, nombre);
+        scopeActual = funcScope;
     }
 
 
@@ -187,7 +189,7 @@ terminal String DIV;       // /
 terminal String DIVENT;    // //
 terminal String MOD;       // %
 terminal String ELEV;      // ^
-terminal String UMINUS;
+
 
 terminal String INC;       // ++
 terminal String DEC;       // --
@@ -226,11 +228,10 @@ terminal Boolean   BOOL_LITERAL;
 terminal String ID; // nombres de variables y funciones
 
 /* No terminales con tipos definidos */
-non terminal Nodo programa, declaracionesYFuncionesGlobales,elementoGlobal, declaracionGlobal, listaFunciones, funcion, funcionMain, bloqueFuncion, parametros, listaParametros, bloque, listaSentencias,
+non terminal Nodo programa, declaracionesYFuncionesGlobales, elementoGlobal, declaracionGlobal, listaFunciones, funcion, funcionMain, parametros, listaParametros, bloque, listaSentencias,
 sentencia, declaracionLocal, declaracionArreglo, arregloAsignacion, listaFilas, fila, listaValores, valoresArreglo, sentenciaMostrar, sentenciaLeer,
-sentenciaReturn, sentenciaBreak, sentenciaDecide, casosDecide, casoDecide, casoElse, sentenciaLoop, salidaLoop, sentenciaFor, forIniciar, forActualizar, 
-llamadaFuncion, argumentos, listaArgumentos, expresion, expresionLogica, terminoLogico, factorLogico, expresionRelacional, expresionAritmetica, termino,
-potencia, primario, literal, declaracion, declaracionVariable;
+sentenciaReturn, sentenciaBreak, sentenciaDecide, casosDecide, casoDecide, casoElse, sentenciaLoop, salidaLoop, sentenciaFor, forIniciar, forActualizar,
+llamadaFuncion, argumentos, listaArgumentos, expresion, expresionLogica, terminoLogico, factorLogico, expresionRelacional, expresionAritmetica, termino, factor, primario, literal, declaracion, declaracionVariable;
 non terminal String tipo, operadorRelacional;
 
 /* Precedencias */
@@ -241,7 +242,7 @@ precedence left EQ, NEQ, LOWTHAN, LOWEQ, GTHAN, GEQ;
 precedence left PLUS, MINUS;
 precedence left MULT, DIV, DIVENT, MOD;
 precedence right ELEV;
-precedence right UMINUS;
+
 
 start with programa;
 
@@ -278,6 +279,7 @@ elementoGlobal ::=
       {: RESULT = f; :}
 ;
 
+
 declaracionGlobal ::= WORLD tipo:t ID:i ENDL {:
   scopeActual = "GLOBAL";
   agregarSimbolo(i, t);
@@ -306,43 +308,40 @@ tipo ::= INT     {: RESULT = "int"; :}
        | STRING  {: RESULT = "string"; :}
 ;
 
-funcion ::= GIFT tipo:t ID:i LPAREN parametros:p RPAREN
+
+listaFunciones ::= listaFunciones:lf funcion:f
+    {:
+        lf.agregarHijo(f);
+        RESULT = lf;
+    :}
+    | /* caso base vacío */
+    {: RESULT = new Nodo("LISTA FUNCIONES"); :}
+;
+
+funcion ::= GIFT tipo:t ID:i
     {:
         entrarFuncion();
-        agregarFuncion(i, t);
+        agregarFuncion(i,t);
     :}
-    bloqueFuncion:b
+    LPAREN parametros:p RPAREN bloque:b
     {:
         Nodo funcion = new Nodo("Función: " + i);
         funcion.agregarHijo(p);
         funcion.agregarHijo(b);
+        scopeActual = raizScope.get(scopeActual);
         RESULT = funcion;
     :}
-;
-
-bloqueFuncion ::= LBRACE
-    {:
-        if (ultimoScopeCreado != null) {
-            scopeActual = ultimoScopeCreado;
-        } else {
-            scopeActual = "GLOBAL";
-        }
-    :}
-    listaSentencias:ls
-    RBRACE
-    {:
-        Nodo b = new Nodo("Bloque Función");
-        b.agregarHijo(ls);
-        scopeActual = raizScope.get(scopeActual);
-        ultimoScopeCreado = null;
-        RESULT = b;
-    :}
+    | error RBRACE {:
+            parser.errorDetectado = true;
+            RESULT = new Nodo(">>> ERROR EN ESTRUCTURA DE FUNCIÓN <<<");
+          :}
 ;
 
 funcionMain ::= COAL NAVIDAD LPAREN RPAREN
     {:
         entrarFuncion();
-        agregarFuncion("navidad", "coal");
+        agregarFuncion("navidad","coal");
+
     :}
     bloque:b
     {:
@@ -351,7 +350,10 @@ funcionMain ::= COAL NAVIDAD LPAREN RPAREN
         scopeActual = raizScope.get(scopeActual);
         RESULT = funcionMain;
     :}
-;
+    | error {:
+            parser.errorDetectado = true;
+            RESULT = new Nodo(">>> ERROR CRÍTICO EN FUNCIÓN MAIN <<<");
+        :};
 
 
 parametros ::= {:
@@ -397,25 +399,24 @@ listaSentencias ::= listaSentencias:ls sentencia:s
     {: RESULT = new Nodo("LISTA SENTENCIAS"); :}
 ;
 
-sentencia ::= declaracionLocal:s    {: RESULT = s; :}
+sentencia ::= ID:i ASSIGN expresion:e ENDL
+              {:
+                Nodo n = new Nodo("Asignación " + i);
+                n.agregarHijo(e);
+                RESULT = n;
+              :}
+             | ID:i LBRACKET expresion:e1 RBRACKET
+                  LBRACKET expresion:e2 RBRACKET
+                  ASSIGN expresion:e3 ENDL
+              {:
+                Nodo n = new Nodo("Asignación Arreglo " + i);
+                n.agregarHijo(e1);
+                n.agregarHijo(e2);
+                n.agregarHijo(e3);
+                RESULT = n;
+              :}
+	    | declaracionLocal:s    {: RESULT = s; :}
             | declaracionArreglo:s  {: RESULT = s; :}
-            | ID:i ASSIGN expresion:e ENDL
-                  {:
-                      Nodo n = new Nodo("Asignación");
-                      n.agregarHijo(new Nodo("Identificador: " + i));
-                      n.agregarHijo(e);
-                      RESULT = n;
-                  :}
-
-           | ID:i LBRACKET expresion:e1 RBRACKET LBRACKET expresion:e2 RBRACKET ASSIGN expresion:e3 ENDL
-                  {:
-                      Nodo n = new Nodo("Asignación Arreglo 2D");
-                      n.agregarHijo(new Nodo("Identificador: " + i));
-                      n.agregarHijo(e1);
-                      n.agregarHijo(e2);
-                      n.agregarHijo(e3);
-                      RESULT = n;
-                  :}
             | expresion:e ENDL      {:
                 Nodo sent = new Nodo("Sentencia Expresión");
                 sent.agregarHijo(e);
@@ -434,7 +435,6 @@ sentencia ::= declaracionLocal:s    {: RESULT = s; :}
             | sentenciaDecide:s     {: RESULT = s; :}
             | sentenciaLoop:s       {: RESULT = s; :}
             | sentenciaFor:s        {: RESULT = s; :}
-            | funcion:s        {:RESULT = s;:}
 
 ;
 
@@ -534,7 +534,6 @@ valoresArreglo ::= INT_LITERAL  {: RESULT = new Nodo("Valor Entero"); :}
 ;
 
 
-
 sentenciaMostrar ::= SHOW expresion:e ENDL {:
                         Nodo n = new Nodo("Sentencia Show");
                         n.agregarHijo(e);
@@ -545,19 +544,15 @@ sentenciaMostrar ::= SHOW expresion:e ENDL {:
 sentenciaLeer ::= GET ID ENDL {: RESULT = new Nodo("Sentencia Get"); :}
 ;
 
-sentenciaDecide ::=
-    DECIDE OF
-    casosDecide:cd
-    casoElse:ce
-    END DECIDE ENDL
-    {:
-        entrarBloque("decide");
-        Nodo n = new Nodo("Sentencia Decide");
-        n.agregarHijo(cd);
-        n.agregarHijo(ce);
-        salirBloque();
-        RESULT = n;
-    :}
+sentenciaDecide ::= DECIDE OF {:
+                  entrarBloque("decide");:}
+                  casosDecide:cd casoElse:ce END DECIDE ENDL {:
+                  Nodo n = new Nodo("Sentencia Decide");
+                  n.agregarHijo(cd);
+                  n.agregarHijo(ce);
+                  salirBloque();
+                  RESULT = n;
+                    :}
 ;
 
 casosDecide ::= casoDecide:c {:
@@ -595,19 +590,15 @@ casoElse ::= {: RESULT = new Nodo("Sin caso Else"); :}
              :}
 ;
 
-sentenciaLoop ::=
-    LOOP
-    listaSentencias:ls
-    salidaLoop:sl
-    END LOOP ENDL
-    {:
-        entrarBloque("loop");
-        Nodo n = new Nodo("Sentencia Loop");
-        n.agregarHijo(ls);
-        n.agregarHijo(sl);
-        salirBloque();
-        RESULT = n;
-    :}
+sentenciaLoop ::= LOOP {:
+                entrarBloque("loop");:}
+                listaSentencias:ls salidaLoop:sl END LOOP ENDL {:
+                    Nodo n = new Nodo("Sentencia Loop");
+                    n.agregarHijo(ls);
+                    n.agregarHijo(sl);
+                    salirBloque();
+                    RESULT = n;
+                  :}
 ;
 
 salidaLoop ::= EXIT WHEN expresion:e ENDL {:
@@ -621,22 +612,17 @@ salidaLoop ::= EXIT WHEN expresion:e ENDL {:
         :}
 ;
 
-sentenciaFor ::=
-    FOR LPAREN
-    forIniciar:fi ENDL
-    expresion:e ENDL
-    forActualizar:fa RPAREN
-    bloque:b
-    {:
-        entrarBloque("for");
-        Nodo n = new Nodo("Sentencia For");
-        n.agregarHijo(fi);
-        n.agregarHijo(e);
-        n.agregarHijo(fa);
-        n.agregarHijo(b);
-        salirBloque();
-        RESULT = n;
-    :}
+sentenciaFor ::= FOR LPAREN {:
+               entrarBloque("for");:}
+               forIniciar:fi ENDL expresion:e ENDL forActualizar:fa RPAREN bloque:b {:
+               Nodo n = new Nodo("Sentencia For");
+               n.agregarHijo(fi);
+               n.agregarHijo(e);
+               n.agregarHijo(fa);
+               n.agregarHijo(b);
+               salirBloque();
+               RESULT = n;
+:}
 ;
 
 
@@ -655,8 +641,8 @@ forIniciar ::= tipo:t ID:i ASSIGN expresion:e
       :}
 ;
 
-forActualizar ::=
-      INC ID:i
+
+forActualizar ::=  INC ID:i
       {:
           Nodo n = new Nodo("For Actualización (++ )");
           n.agregarHijo(new Nodo("Variable: " + i));
@@ -669,8 +655,6 @@ forActualizar ::=
           RESULT = n;
       :}
 ;
-
-
 
 sentenciaReturn ::= RETURN expresion:e ENDL {:
                         Nodo n = new Nodo("Sentencia Return");
@@ -766,67 +750,62 @@ expresionAritmetica ::= expresionAritmetica:e PLUS termino:t {:
                       | termino:t {: RESULT = t; :}
 ;
 
-termino ::= termino:t MULT potencia:p {:
+termino ::= termino:t MULT factor:f {:
                 Nodo n = new Nodo("Multiplicación");
                 n.agregarHijo(t);
-                n.agregarHijo(p);
+                n.agregarHijo(f);
                 RESULT = n;
             :}
-          | termino:t DIV potencia:p {:
+          | termino:t DIV factor:f {:
                 Nodo n = new Nodo("División");
                 n.agregarHijo(t);
-                n.agregarHijo(p);
+                n.agregarHijo(f);
                 RESULT = n;
             :}
-          | termino:t DIVENT potencia:p {:
+          | termino:t DIVENT factor:f {:
                 Nodo n = new Nodo("División Entera");
                 n.agregarHijo(t);
-                n.agregarHijo(p);
+                n.agregarHijo(f);
                 RESULT = n;
             :}
-          | termino:t MOD potencia:p {:
+          | termino:t MOD factor:f {:
                 Nodo n = new Nodo("Módulo");
                 n.agregarHijo(t);
-                n.agregarHijo(p);
+                n.agregarHijo(f);
                 RESULT = n;
             :}
-          | potencia:p {: RESULT = p; :}
+          | factor:f {: RESULT = f; :}
 ;
 
-potencia ::= primario:p {:
-                RESULT = p;
-            :}
-          | primario:p ELEV potencia:pt {:
-                Nodo n = new Nodo("Potencia");
-                n.agregarHijo(p);
-                n.agregarHijo(pt);
-                RESULT = n;
-            :}
+factor ::= factor:f ELEV primario:p {:
+            Nodo n = new Nodo("Potencia");
+            n.agregarHijo(f);
+            n.agregarHijo(p);
+            RESULT = n;
+          :}
+         | primario:p {: RESULT = p; :}
 ;
 
 
 primario ::= ID {: RESULT = new Nodo("Identificador"); :}
            | literal:l {: RESULT = l; :}
            | llamadaFuncion:lf {: RESULT = lf; :}
-           | INC ID {: RESULT = new Nodo("Incremento"); :}
-           | DEC ID {: RESULT = new Nodo("Decremento"); :}
            | ID LBRACKET expresion:e1 RBRACKET LBRACKET expresion:e2 RBRACKET {:
                 Nodo n = new Nodo("Acceso Arreglo");
                 n.agregarHijo(e1);
                 n.agregarHijo(e2);
                 RESULT = n;
              :}
-           | MINUS literal:l %prec UMINUS {:
-                   Nodo n = new Nodo("Negación");
-                   n.agregarHijo(l);
-                   RESULT = n;
-                   :}
            | LPAREN expresion:e RPAREN {: RESULT = e; :}
 ;
 
-literal ::= INT_LITERAL    {: RESULT = new Nodo("Literal Entero"); :}
+literal ::= MINUS INT_LITERAL {: RESULT = new Nodo("Literal entero negativo"); :}
+	  | MINUS FLOAT_LITERAL {: RESULT = new Nodo("Literal flotante negativo"); :}
+	  | INT_LITERAL    {: RESULT = new Nodo("Literal Entero"); :}
           | FLOAT_LITERAL  {: RESULT = new Nodo("Literal Flotante"); :}
           | STRING_LITERAL {: RESULT = new Nodo("Literal String"); :}
           | CHAR_LITERAL   {: RESULT = new Nodo("Literal Char"); :}
           | BOOL_LITERAL   {: RESULT = new Nodo("Literal Bool"); :}
+
+
 ;
