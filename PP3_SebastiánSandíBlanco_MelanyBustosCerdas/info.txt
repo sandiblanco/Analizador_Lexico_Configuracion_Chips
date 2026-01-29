@@ -1,0 +1,17 @@
+Nombre del curso: Compiladores e intérpretres
+
+Semestre: Verano 2025-2026
+
+Nombre estudiantes: Sebastián Josué Sandí Blanco, Melany Karina Bustos Cerdas
+
+Número de carnet: 2024206362, 2024155515
+
+Tercer proyecto programado
+
+Fecha de entrega: 01/02/2026
+
+Estatus de la entrega: Excelente
+
+Enlace repositorio: https://github.com/sandiblanco/Analizador_Lexico_Configuracion_Chips/tree/main
+
+

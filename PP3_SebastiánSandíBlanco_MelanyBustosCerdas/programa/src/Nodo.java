@@ -1,0 +1,70 @@
+/**
+ CURSO: Compiladores e Intérpretes
+ PROYECTO #2: Análisis Sintáctico
+ ESTUDIANTES: Sebastián Sandí Blanco y Melany Bustos Cerdas
+ ARCHIVO: Nodo.java
+
+ OBJETIVO: Clase base para representar los nodos del Árbol Sintáctico.
+ ENTRADA: Nombre del nodo y sus hijos.
+ SALIDA: Estructura jerárquica del programa.
+ */
+
+package src;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Nodo {
+    private String nombre;
+    private List<Nodo> hijos;
+
+    // Códigos ANSI para colores
+    public static final String RESET = "\u001B[0m";
+    public static final String RED = "\u001B[31m";
+    public static final String GREEN = "\u001B[32m";
+    public static final String YELLOW = "\u001B[33m";
+    public static final String BLUE = "\u001B[34m";
+    public static final String PURPLE = "\u001B[35m";
+    public static final String CYAN = "\u001B[36m";
+
+    public Nodo(String nombre) {
+        this.nombre = nombre;
+        this.hijos = new ArrayList<>();
+    }
+
+    public void agregarHijo(Nodo hijo) {
+        if (hijo != null) {
+            hijos.add(hijo);
+        }
+    }
+
+    // Imprimir el árbol con sangrías
+    public void imprimir(String prefijo, boolean esUltimo) {
+
+        String color = RESET;
+
+        // Lógica de colores según el contenido del nombre
+        if (nombre.contains("ERROR")) {
+            color = RED;
+        } else if (nombre.contains("DECLARACIONES GLOBALES")) {
+            color = CYAN;
+        } else if (nombre.contains("LISTA FUNCIONES")) {
+            color = GREEN;
+        } else if (nombre.contains("Función Main")) {
+            color = YELLOW;
+        }
+
+        System.out.println(prefijo + (esUltimo ? "└── " : "├── ") + color + nombre + RESET);
+
+        for (int i = 0; i < hijos.size(); i++) {
+            boolean ultimoHijo = (i == hijos.size() - 1);
+            // Si no es el último hijo del padre entonces la línea sigue hacia abajo
+            String nuevoPrefijo = prefijo + (esUltimo ? "    " : "│   ");
+            hijos.get(i).imprimir(nuevoPrefijo, ultimoHijo);
+        }
+    }
+
+    public String getName(){
+     return this.nombre;
+    }
+}
