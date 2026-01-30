@@ -16,6 +16,7 @@ import java.util.List;
 
 public class Nodo {
     private String nombre;
+    private String tipo;
     private List<Nodo> hijos;
 
     // Códigos ANSI para colores
@@ -27,8 +28,16 @@ public class Nodo {
     public static final String PURPLE = "\u001B[35m";
     public static final String CYAN = "\u001B[36m";
 
-    public Nodo(String nombre) {
+    public Nodo(String nombre, String tipo) {
         this.nombre = nombre;
+        this.tipo = tipo; //variable, constante, etc
+        this.hijos = new ArrayList<>();
+    }
+
+    // Constructor con tipo por defecto
+    public Nodo(String nombre) {
+        this.nombre =  nombre;
+        this.tipo = "Flujo";   // default
         this.hijos = new ArrayList<>();
     }
 
@@ -69,5 +78,9 @@ public class Nodo {
 
     public String getName(){
      return this.nombre;
+    }
+
+    public List<Nodo> getHijos(){
+        return this.hijos;
     }
 }

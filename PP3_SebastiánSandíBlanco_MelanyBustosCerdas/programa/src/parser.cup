@@ -789,7 +789,7 @@ factor ::= factor:f ELEV primario:p {:
 ;
 
 
-primario ::= ID:v {: RESULT = new Nodo(v.toString()); :}
+primario ::= ID:v {: RESULT = new Nodo(v.toString(), "variable"); :}
            | literal:l {: RESULT = l; :}
            | llamadaFuncion:lf {: RESULT = lf; :}
            | ID LBRACKET expresion:e1 RBRACKET LBRACKET expresion:e2 RBRACKET {:
@@ -802,11 +802,11 @@ primario ::= ID:v {: RESULT = new Nodo(v.toString()); :}
 ;
 
 literal ::=
-      MINUS INT_LITERAL:v {: RESULT = new Nodo("-" + v); :}
-    | MINUS FLOAT_LITERAL:v {: RESULT = new Nodo("-" + v); :}
-    | INT_LITERAL:v    {: RESULT = new Nodo(v.toString()); :}
-    | FLOAT_LITERAL:v  {: RESULT = new Nodo(v.toString()); :}
-    | STRING_LITERAL:v {: RESULT = new Nodo(v.toString()); :}
-    | CHAR_LITERAL:v   {: RESULT = new Nodo(v.toString()); :}
-    | BOOL_LITERAL:v   {: RESULT = new Nodo(v.toString()); :}
+      MINUS INT_LITERAL:v {: RESULT = new Nodo("-" + v, "constante"); :}
+    | MINUS FLOAT_LITERAL:v {: RESULT = new Nodo("-" + v, "constante"); :}
+    | INT_LITERAL:v    {: RESULT = new Nodo(v.toString(), "constante"); :}
+    | FLOAT_LITERAL:v  {: RESULT = new Nodo(v.toString(), "constante"); :}
+    | STRING_LITERAL:v {: RESULT = new Nodo(v.toString(), "constante"); :}
+    | CHAR_LITERAL:v   {: RESULT = new Nodo(v.toString(), "constante"); :}
+    | BOOL_LITERAL:v   {: RESULT = new Nodo(v.toString(), "constante"); :}
 ;
