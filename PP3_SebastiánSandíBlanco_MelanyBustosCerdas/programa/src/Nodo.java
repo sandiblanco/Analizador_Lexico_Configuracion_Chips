@@ -46,12 +46,15 @@ public class Nodo {
         // Lógica de colores según el contenido del nombre
         if (nombre.contains("ERROR")) {
             color = RED;
-        } else if (nombre.contains("DECLARACIONES GLOBALES")) {
-            color = CYAN;
-        } else if (nombre.contains("LISTA FUNCIONES")) {
+        } else if (nombre.contains("DECLARACIONES GLOBALES Y FUNCIONES")) {
             color = GREEN;
         } else if (nombre.contains("Función Main")) {
             color = YELLOW;
+        } else if (nombre.contains("Función: ")) {
+            color = PURPLE;
+        } else if (nombre.contains("PROGRAMA")) {
+            color = CYAN;
+            System.out.println("\n");
         }
 
         System.out.println(prefijo + (esUltimo ? "└── " : "├── ") + color + nombre + RESET);
