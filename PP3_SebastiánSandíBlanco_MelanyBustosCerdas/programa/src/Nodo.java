@@ -80,7 +80,12 @@ public class Nodo {
      return this.nombre;
     }
 
+    public String getTipo(){
+        return this.tipo;
+    }
+
     public List<Nodo> getHijos(){
         return this.hijos;
     }
+
 }
