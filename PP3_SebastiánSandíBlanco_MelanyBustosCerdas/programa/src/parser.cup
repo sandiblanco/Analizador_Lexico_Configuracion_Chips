@@ -20,6 +20,7 @@ https://www2.cs.tum.edu/projects/cup/ */
 package generados;
 import java_cup.runtime.*;
 import src.Nodo;
+import src.TipoNodo;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -294,7 +295,7 @@ declaracionGlobal ::= WORLD tipo:t ID:i ENDL {:
         agregarSimbolo(i, t);
         //Árbol sintáctico
 		    Nodo declaracionG = new Nodo("Declaración global con asignación: " + t + " " + i );
-		    Nodo assign = new Nodo("=");
+		    Nodo assign = new Nodo("=", TipoNodo.OPERADOR);
 		    assign.agregarHijo(new Nodo(i.toString()));
 		    assign.agregarHijo(e);
 		    declaracionG.agregarHijo(assign);
@@ -468,7 +469,7 @@ declaracionVariable ::=
         {:
             agregarSimbolo(i, t);
             Nodo n = new Nodo("Declaración de variable con asignación");
-            Nodo assign = new Nodo("=");
+            Nodo assign = new Nodo("=", TipoNodo.OPERADOR);
             assign.agregarHijo(new Nodo(i.toString()));
             assign.agregarHijo(e);
             n.agregarHijo(assign);
@@ -738,13 +739,13 @@ operadorRelacional ::=
 ;
 
 expresionAritmetica ::= expresionAritmetica:e PLUS termino:t {:
-                            Nodo n = new Nodo("+");
+                            Nodo n = new Nodo("+", TipoNodo.OPERADOR);
                             n.agregarHijo(e);
                             n.agregarHijo(t);
                             RESULT = n;
                         :}
                       | expresionAritmetica:e MINUS termino:t {:
-                            Nodo n = new Nodo("-");
+                            Nodo n = new Nodo("-", TipoNodo.OPERADOR);
                             n.agregarHijo(e);
                             n.agregarHijo(t);
                             RESULT = n;
@@ -753,25 +754,25 @@ expresionAritmetica ::= expresionAritmetica:e PLUS termino:t {:
 ;
 
 termino ::= termino:t MULT factor:f {:
-                Nodo n = new Nodo("*");
+                Nodo n = new Nodo("*", TipoNodo.OPERADOR);
                 n.agregarHijo(t);
                 n.agregarHijo(f);
                 RESULT = n;
             :}
           | termino:t DIV factor:f {:
-                Nodo n = new Nodo("/");
+                Nodo n = new Nodo("/", TipoNodo.OPERADOR);
                 n.agregarHijo(t);
                 n.agregarHijo(f);
                 RESULT = n;
             :}
           | termino:t DIVENT factor:f {:
-                Nodo n = new Nodo("División Entera");
+                Nodo n = new Nodo("División Entera", TipoNodo.OPERADOR);
                 n.agregarHijo(t);
                 n.agregarHijo(f);
                 RESULT = n;
             :}
           | termino:t MOD factor:f {:
-                Nodo n = new Nodo("%");
+                Nodo n = new Nodo("%", TipoNodo.OPERADOR);
                 n.agregarHijo(t);
                 n.agregarHijo(f);
                 RESULT = n;
@@ -780,7 +781,7 @@ termino ::= termino:t MULT factor:f {:
 ;
 
 factor ::= factor:f ELEV primario:p {:
-            Nodo n = new Nodo("Potencia");
+            Nodo n = new Nodo("Potencia", TipoNodo.OPERADOR);
             n.agregarHijo(f);
             n.agregarHijo(p);
             RESULT = n;
@@ -789,7 +790,7 @@ factor ::= factor:f ELEV primario:p {:
 ;
 
 
-primario ::= ID:v {: RESULT = new Nodo(v.toString(), "variable"); :}
+primario ::= ID:v {: RESULT = new Nodo(v.toString(), TipoNodo.VARIABLE); :}
            | literal:l {: RESULT = l; :}
            | llamadaFuncion:lf {: RESULT = lf; :}
            | ID LBRACKET expresion:e1 RBRACKET LBRACKET expresion:e2 RBRACKET {:
@@ -802,11 +803,11 @@ primario ::= ID:v {: RESULT = new Nodo(v.toString(), "variable"); :}
 ;
 
 literal ::=
-      MINUS INT_LITERAL:v {: RESULT = new Nodo("-" + v, "constante"); :}
-    | MINUS FLOAT_LITERAL:v {: RESULT = new Nodo("-" + v, "constante"); :}
-    | INT_LITERAL:v    {: RESULT = new Nodo(v.toString(), "constante"); :}
-    | FLOAT_LITERAL:v  {: RESULT = new Nodo(v.toString(), "constante"); :}
-    | STRING_LITERAL:v {: RESULT = new Nodo(v.toString(), "constante"); :}
-    | CHAR_LITERAL:v   {: RESULT = new Nodo(v.toString(), "constante"); :}
-    | BOOL_LITERAL:v   {: RESULT = new Nodo(v.toString(), "constante"); :}
+      MINUS INT_LITERAL:v {: RESULT = new Nodo("-" + v, TipoNodo.CONSTANTE); :}
+    | MINUS FLOAT_LITERAL:v {: RESULT = new Nodo("-" + v, TipoNodo.CONSTANTE); :}
+    | INT_LITERAL:v    {: RESULT = new Nodo(v.toString(), TipoNodo.CONSTANTE); :}
+    | FLOAT_LITERAL:v  {: RESULT = new Nodo(v.toString(), TipoNodo.CONSTANTE); :}
+    | STRING_LITERAL:v {: RESULT = new Nodo(v.toString(), TipoNodo.CONSTANTE); :}
+    | CHAR_LITERAL:v   {: RESULT = new Nodo(v.toString(), TipoNodo.CONSTANTE); :}
+    | BOOL_LITERAL:v   {: RESULT = new Nodo(v.toString(), TipoNodo.CONSTANTE); :}
 ;
