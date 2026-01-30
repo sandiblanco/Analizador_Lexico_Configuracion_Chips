@@ -269,7 +269,7 @@ declaracionesYFuncionesGlobales::=declaracionesYFuncionesGlobales:dfg elementoGl
         RESULT = dfg;
     :}
     | /* caso base vacío */
-    {: RESULT = new Nodo("LISTA DECLARACIONES GLOBALES"); :}
+    {: RESULT = new Nodo("DECLARACIONES GLOBALES Y FUNCIONES"); :}
 ;
 
 elementoGlobal ::=
