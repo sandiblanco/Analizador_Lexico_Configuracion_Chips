@@ -228,11 +228,11 @@ terminal Boolean   BOOL_LITERAL;
 terminal String ID; // nombres de variables y funciones
 
 /* No terminales con tipos definidos */
-non terminal Nodo programa, declaracionesYFuncionesGlobales, elementoGlobal, declaracionGlobal, listaFunciones, funcion, funcionMain, parametros, listaParametros, bloque, listaSentencias,
+non terminal Nodo programa, operadorRelacional, declaracionesYFuncionesGlobales, elementoGlobal, declaracionGlobal, listaFunciones, funcion, funcionMain, parametros, listaParametros, bloque, listaSentencias,
 sentencia, declaracionLocal, declaracionArreglo, arregloAsignacion, listaFilas, fila, listaValores, valoresArreglo, sentenciaMostrar, sentenciaLeer,
 sentenciaReturn, sentenciaBreak, sentenciaDecide, casosDecide, casoDecide, casoElse, sentenciaLoop, salidaLoop, sentenciaFor, forIniciar, forActualizar,
-llamadaFuncion, argumentos, listaArgumentos, expresion, expresionLogica, terminoLogico, factorLogico, expresionRelacional, expresionAritmetica, termino, factor, primario, literal, declaracion, declaracionVariable;
-non terminal String tipo, operadorRelacional;
+llamadaFuncion, argumentos, listaArgumentos, expresion, terminoLogico, factorLogico, expresionRelacional, expresionAritmetica, termino, factor, primario, literal, declaracion, declaracionVariable;
+non terminal String tipo;
 
 /* Precedencias */
 precedence left OR;
@@ -287,12 +287,19 @@ declaracionGlobal ::= WORLD tipo:t ID:i ENDL {:
   RESULT = declaracionG;
 
 :}
-		    | WORLD tipo:t ID:i ASSIGN expresion ENDL {:
+        //Declaración con asignación
+		    | WORLD tipo:t ID:i ASSIGN expresion:e ENDL {:
+		    //Tabla de símbolos
         scopeActual = "GLOBAL";
         agregarSimbolo(i, t);
-		    Nodo declaracionG = new Nodo("Declaración global con asignación: " + t + " " + i);
+        //Árbol sintáctico
+		    Nodo declaracionG = new Nodo("Declaración global con asignación: " + t + " " + i );
+		    Nodo assign = new Nodo("=");
+		    assign.agregarHijo(new Nodo(i.toString()));
+		    assign.agregarHijo(e);
+		    declaracionG.agregarHijo(assign);
 		    RESULT = declaracionG;
-        :}
+        :} //Manejo de errores
         | WORLD error ENDL {:
             parser.errorDetectado = true;
             RESULT = new Nodo(">>> ERROR EN DECLARACIÓN GLOBAL <<<");
@@ -306,16 +313,6 @@ tipo ::= INT     {: RESULT = "int"; :}
        | BOOL    {: RESULT = "bool"; :}
        | CHAR    {: RESULT = "char"; :}
        | STRING  {: RESULT = "string"; :}
-;
-
-
-listaFunciones ::= listaFunciones:lf funcion:f
-    {:
-        lf.agregarHijo(f);
-        RESULT = lf;
-    :}
-    | /* caso base vacío */
-    {: RESULT = new Nodo("LISTA FUNCIONES"); :}
 ;
 
 funcion ::= GIFT tipo:t ID:i
@@ -458,6 +455,7 @@ declaracion ::=
       {: RESULT = dv; :}
     | declaracionArreglo:da
       {: RESULT = da; :}
+
 ;
 
 declaracionVariable ::=
@@ -469,8 +467,11 @@ declaracionVariable ::=
       | tipo:t ID:i ASSIGN expresion:e ENDL
         {:
             agregarSimbolo(i, t);
-            Nodo n = new Nodo("Declaración de variable con asignación: " + t + " " + i);
-            n.agregarHijo(e);
+            Nodo n = new Nodo("Declaración de variable con asignación");
+            Nodo assign = new Nodo("=");
+            assign.agregarHijo(new Nodo(i.toString()));
+            assign.agregarHijo(e);
+            n.agregarHijo(assign);
             RESULT = n;
         :}
       | ID ENDL
@@ -529,10 +530,9 @@ listaValores ::= valoresArreglo:v {:
                  :}
 ;
 
-valoresArreglo ::= INT_LITERAL  {: RESULT = new Nodo("Valor Entero"); :}
-                 | CHAR_LITERAL {: RESULT = new Nodo("Valor Char"); :}
+valoresArreglo ::= INT_LITERAL:i  {: RESULT = new Nodo(i.toString()); :}
+                 | CHAR_LITERAL:c {: RESULT = new Nodo(c.toString()); :}
 ;
-
 
 sentenciaMostrar ::= SHOW expresion:e ENDL {:
                         Nodo n = new Nodo("Sentencia Show");
@@ -688,16 +688,14 @@ listaArgumentos ::= expresion:e {:
                     :}
 ;
 
-expresion ::= expresionLogica:e {: RESULT = e; :}
-;
-
-expresionLogica ::= expresionLogica:e OR terminoLogico:t {:
+expresion ::= expresion:e OR terminoLogico:t {:
                         Nodo n = new Nodo("Expresión Lógica (OR)");
                         n.agregarHijo(e);
                         n.agregarHijo(t);
                         RESULT = n;
                     :}
-                  | terminoLogico:t {: RESULT = t; :}
+                  | terminoLogico:t {:
+                  RESULT = t; :}
 ;
 
 terminoLogico ::= terminoLogico:t AND factorLogico:f {:
@@ -706,7 +704,8 @@ terminoLogico ::= terminoLogico:t AND factorLogico:f {:
                     n.agregarHijo(f);
                     RESULT = n;
                   :}
-                | factorLogico:f {: RESULT = f; :}
+                | factorLogico:f {:
+                    RESULT = f; :}
 ;
 
 factorLogico ::= NOT factorLogico:f {:
@@ -714,35 +713,38 @@ factorLogico ::= NOT factorLogico:f {:
                     n.agregarHijo(f);
                     RESULT = n;
                  :}
-               | expresionRelacional:e {: RESULT = e; :}
+               | expresionRelacional:e {:
+                   RESULT = e; :}
 ;
 
-expresionRelacional ::= expresionAritmetica:e1 operadorRelacional:op expresionAritmetica:e2 {:
-                            Nodo n = new Nodo("Expresión Relacional: " + e1.getName() + " " + op + " " + e2.getName());
+expresionRelacional ::= expresionAritmetica:e1 operadorRelacional:o expresionAritmetica:e2 {:
+                            Nodo n = new Nodo("Expresión Relacional");
                             n.agregarHijo(e1);
-                            n.agregarHijo(new Nodo("operador relacional"));
+                            n.agregarHijo(o);
                             n.agregarHijo(e2);
                             RESULT = n;
                         :}
-                      | expresionAritmetica:e {: RESULT = e; :}
+                      | expresionAritmetica:e {:
+                            RESULT = e; :}
 ;
 
-operadorRelacional ::= LOWTHAN {: RESULT = "<"; :}
-                     | LOWEQ   {: RESULT = "<="; :}
-                     | GTHAN   {: RESULT = ">"; :}
-                     | GEQ     {: RESULT = ">="; :}
-                     | EQ      {: RESULT = "=="; :}
-                     | NEQ     {: RESULT = "!="; :}
+operadorRelacional ::=
+      LOWTHAN {: RESULT = new Nodo("<");  :}
+    | LOWEQ   {: RESULT = new Nodo("<="); :}
+    | GTHAN   {: RESULT = new Nodo(">");  :}
+    | GEQ     {: RESULT = new Nodo(">="); :}
+    | EQ      {: RESULT = new Nodo("=="); :}
+    | NEQ     {: RESULT = new Nodo("!="); :}
 ;
 
 expresionAritmetica ::= expresionAritmetica:e PLUS termino:t {:
-                            Nodo n = new Nodo("Suma");
+                            Nodo n = new Nodo("+");
                             n.agregarHijo(e);
                             n.agregarHijo(t);
                             RESULT = n;
                         :}
                       | expresionAritmetica:e MINUS termino:t {:
-                            Nodo n = new Nodo("Resta");
+                            Nodo n = new Nodo("-");
                             n.agregarHijo(e);
                             n.agregarHijo(t);
                             RESULT = n;
@@ -751,13 +753,13 @@ expresionAritmetica ::= expresionAritmetica:e PLUS termino:t {:
 ;
 
 termino ::= termino:t MULT factor:f {:
-                Nodo n = new Nodo("Multiplicación");
+                Nodo n = new Nodo("*");
                 n.agregarHijo(t);
                 n.agregarHijo(f);
                 RESULT = n;
             :}
           | termino:t DIV factor:f {:
-                Nodo n = new Nodo("División");
+                Nodo n = new Nodo("/");
                 n.agregarHijo(t);
                 n.agregarHijo(f);
                 RESULT = n;
@@ -769,7 +771,7 @@ termino ::= termino:t MULT factor:f {:
                 RESULT = n;
             :}
           | termino:t MOD factor:f {:
-                Nodo n = new Nodo("Módulo");
+                Nodo n = new Nodo("%");
                 n.agregarHijo(t);
                 n.agregarHijo(f);
                 RESULT = n;
@@ -787,7 +789,7 @@ factor ::= factor:f ELEV primario:p {:
 ;
 
 
-primario ::= ID {: RESULT = new Nodo("Identificador"); :}
+primario ::= ID:v {: RESULT = new Nodo(v.toString()); :}
            | literal:l {: RESULT = l; :}
            | llamadaFuncion:lf {: RESULT = lf; :}
            | ID LBRACKET expresion:e1 RBRACKET LBRACKET expresion:e2 RBRACKET {:
@@ -799,13 +801,12 @@ primario ::= ID {: RESULT = new Nodo("Identificador"); :}
            | LPAREN expresion:e RPAREN {: RESULT = e; :}
 ;
 
-literal ::= MINUS INT_LITERAL {: RESULT = new Nodo("Literal entero negativo"); :}
-	  | MINUS FLOAT_LITERAL {: RESULT = new Nodo("Literal flotante negativo"); :}
-	  | INT_LITERAL    {: RESULT = new Nodo("Literal Entero"); :}
-          | FLOAT_LITERAL  {: RESULT = new Nodo("Literal Flotante"); :}
-          | STRING_LITERAL {: RESULT = new Nodo("Literal String"); :}
-          | CHAR_LITERAL   {: RESULT = new Nodo("Literal Char"); :}
-          | BOOL_LITERAL   {: RESULT = new Nodo("Literal Bool"); :}
-
-
+literal ::=
+      MINUS INT_LITERAL:v {: RESULT = new Nodo("-" + v); :}
+    | MINUS FLOAT_LITERAL:v {: RESULT = new Nodo("-" + v); :}
+    | INT_LITERAL:v    {: RESULT = new Nodo(v.toString()); :}
+    | FLOAT_LITERAL:v  {: RESULT = new Nodo(v.toString()); :}
+    | STRING_LITERAL:v {: RESULT = new Nodo(v.toString()); :}
+    | CHAR_LITERAL:v   {: RESULT = new Nodo(v.toString()); :}
+    | BOOL_LITERAL:v   {: RESULT = new Nodo(v.toString()); :}
 ;
