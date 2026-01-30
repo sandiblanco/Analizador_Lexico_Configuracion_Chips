@@ -16,6 +16,7 @@ import java_cup.runtime.Symbol;
 import generados.Scanner;
 import generados.parser;
 import generados.sym;
+import src.CodigoIntermedio;
 import src.Nodo;
 
 public class Main {
@@ -92,7 +93,7 @@ public class Main {
      private static void analisisSintactico() {
         try {
             Reader lectorArchivo = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(archivoDeErrores), "UTF-8")
+                    new InputStreamReader(new FileInputStream(archivoFuente), "UTF-8")
             );
 
             Scanner scanner = new Scanner(lectorArchivo);
@@ -117,7 +118,7 @@ public class Main {
     private static void arbolSintactico(){
         try {
             // Reiniciamos el lector para que el parser tenga tokens que leer
-            Reader lector = new BufferedReader(new InputStreamReader(new FileInputStream(archivoDeErrores), "UTF-8"));
+            Reader lector = new BufferedReader(new InputStreamReader(new FileInputStream(archivoFuente), "UTF-8"));
             generados.Scanner lexer = new generados.Scanner(lector);
             generados.parser p = new generados.parser(lexer);
 
@@ -133,6 +134,26 @@ public class Main {
 
     }
 
+    private static void generarCodigoIntermedio(){
+        try {
+            CodigoIntermedio intermedio = new CodigoIntermedio();
+            // Reiniciamos el lector para que el parser tenga tokens que leer
+            Reader lector = new BufferedReader(new InputStreamReader(new FileInputStream(archivoFuente), "UTF-8"));
+            generados.Scanner lexer = new generados.Scanner(lector);
+            generados.parser p = new generados.parser(lexer);
+
+            System.out.println(GREEN + "\n--- CÓDIGO INTERMEDIO ---\n" + RESET);
+            Nodo raiz = (Nodo) p.parse().value;
+
+            if (raiz != null) {
+                intermedio.lecturaArbol(raiz);
+                intermedio.imprimirCodigo();
+            }
+        } catch (Exception e) {
+            System.err.println("Error sintáctico: " + e.getMessage());
+        }
+    }
+
 
     private static void menuOpciones(){
 
@@ -145,7 +166,8 @@ public class Main {
             System.out.println("1. " + GREEN + "Análisis Léxico" + RESET + " (Lista de Tokens)");
             System.out.println("2. " + GREEN + "Análisis Sintáctico" + RESET + " (Tabla de símbolos)");
             System.out.println("3. " + GREEN + "Árbol Sintáctico" + RESET);
-            System.out.println("4. Salir");
+            System.out.println("4. " + GREEN + "Imprimir código intermedio" + RESET);
+            System.out.println("5. Salir");
             System.out.print("\nSeleccione una opción: ");
             try {
                 opcion = teclado.nextInt();
@@ -169,6 +191,9 @@ public class Main {
                     esperarRegreso(teclado);
                     break;
                 case 4:
+                    generarCodigoIntermedio();
+                    esperarRegreso(teclado);
+                case 5:
                     System.out.println("Cerrando el sistema...");
                     break;
                 default:

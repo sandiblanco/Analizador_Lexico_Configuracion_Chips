@@ -296,7 +296,7 @@ declaracionGlobal ::= WORLD tipo:t ID:i ENDL {:
         //Árbol sintáctico
 		    Nodo declaracionG = new Nodo("Declaración global con asignación: " + t + " " + i );
 		    Nodo assign = new Nodo("=", TipoNodo.OPERADOR);
-		    assign.agregarHijo(new Nodo(i.toString()));
+		    assign.agregarHijo(new Nodo(i.toString(), TipoNodo.VARIABLE));
 		    assign.agregarHijo(e);
 		    declaracionG.agregarHijo(assign);
 		    RESULT = declaracionG;
