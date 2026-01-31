@@ -1,6 +1,6 @@
 /*
 CURSO: Compiladores e Intérpretes
-PROYECTO #2: Análisis Sintáctico
+PROYECTO #3: Análisis Sintáctico
 ESTUDIANTES: Sebastián Sandí Blanco y Melany Bustos Cerdas
 ARCHIVO: Main.java
 
@@ -150,7 +150,7 @@ public class Main {
                 intermedio.imprimirCodigo();
             }
         } catch (Exception e) {
-            System.err.println("Error sintáctico: " + e.getMessage());
+            System.err.println("Error generando código intermedio: " + e.getMessage());
         }
     }
 
@@ -193,13 +193,14 @@ public class Main {
                 case 4:
                     generarCodigoIntermedio();
                     esperarRegreso(teclado);
+                    break;
                 case 5:
                     System.out.println("Cerrando el sistema...");
                     break;
                 default:
                     System.out.println("Opción no válida.");
             }
-        } while (opcion != 4);
+        } while (opcion != 5);
     }
 
     // Función para que el usuario tenga que presionar 0 para volver al menú

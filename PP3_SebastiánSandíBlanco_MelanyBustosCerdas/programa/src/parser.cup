@@ -323,9 +323,13 @@ funcion ::= GIFT tipo:t ID:i
     :}
     LPAREN parametros:p RPAREN bloque:b
     {:
-        Nodo funcion = new Nodo("Función: " + i);
-        funcion.agregarHijo(p);
-        funcion.agregarHijo(b);
+        //El nombre de la función como un nodo aparte
+        Nodo nombreFuncion = new Nodo(i, TipoNodo.FUNCION);
+        nombreFuncion.agregarHijo(p);
+        nombreFuncion.agregarHijo(b);
+        //Nodo padre
+        Nodo funcion = new Nodo("Función");
+        funcion.agregarHijo(nombreFuncion);
         scopeActual = raizScope.get(scopeActual);
         RESULT = funcion;
     :}
@@ -766,7 +770,7 @@ termino ::= termino:t MULT factor:f {:
                 RESULT = n;
             :}
           | termino:t DIVENT factor:f {:
-                Nodo n = new Nodo("División Entera", TipoNodo.OPERADOR);
+                Nodo n = new Nodo("//", TipoNodo.OPERADOR);
                 n.agregarHijo(t);
                 n.agregarHijo(f);
                 RESULT = n;
@@ -781,7 +785,7 @@ termino ::= termino:t MULT factor:f {:
 ;
 
 factor ::= factor:f ELEV primario:p {:
-            Nodo n = new Nodo("Potencia", TipoNodo.OPERADOR);
+            Nodo n = new Nodo("^", TipoNodo.OPERADOR);
             n.agregarHijo(f);
             n.agregarHijo(p);
             RESULT = n;
