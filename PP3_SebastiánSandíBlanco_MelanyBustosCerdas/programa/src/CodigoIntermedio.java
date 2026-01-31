@@ -7,9 +7,9 @@ public class CodigoIntermedio {
 
     private List<InstruccionIntermedia> instrucciones;
     private int contadorTemporales;
+    private int contadorParametro;
 
     public CodigoIntermedio(){
-        this.contadorTemporales = 0;
         this.instrucciones = new ArrayList<>();
     }
 
@@ -19,14 +19,15 @@ public class CodigoIntermedio {
         String izquierda, derecha, temporal;
         switch (nodo.getTipo()){
 
-            //NODOS DE FLUJO: Se recorren sus hijos
+            //NODOS DE FLUJO: Se recorren sus hijos, no es necesario crear una cuádrupla
             case FLUJO:
                 for (Nodo hijo : nodo.getHijos())
                     lecturaArbol(hijo);
                 return "";
 
-            //OPERADORES: Se recorre el hijo izquierdo y derecho
+            //OPERADORES o ASIGNACIONES: Se recorre el hijo izquierdo y derecho
             case OPERADOR:
+            case ASIGNACION:
                 izquierda = lecturaArbol(nodo.getHijos().get(0));
                 derecha = lecturaArbol(nodo.getHijos().get(1));
                 temporal = generarTemporal();
@@ -34,13 +35,22 @@ public class CodigoIntermedio {
                 instrucciones.add(instruccion);
                 return temporal;
 
-            //ASIGNACIÓN: Aquí el resultado de la instrucción va a ser el hijo izquierdo
-            case ASIGNACION:
-                izquierda = lecturaArbol(nodo.getHijos().get(0));
-                derecha = lecturaArbol(nodo.getHijos().get(1));
-                instruccion = new InstruccionIntermedia("", "", derecha, izquierda);
+            //FUNCION:
+            case FUNCION:
+                //Añadir primero la instrucción de función para hacer "func begin" antes del bloque
+                instruccion = new InstruccionIntermedia("FUNCIÓN", "", "", nodo.getName());
                 instrucciones.add(instruccion);
-                return izquierda;
+                izquierda = lecturaArbol(nodo.getHijos().get(0)); //Estos son los parámetros
+                derecha = lecturaArbol(nodo.getHijos().get(1)); //Este es el bloque de la función
+                return "";
+
+            case PARAMETROS:
+                for (Nodo parametro : nodo.getHijos()) {
+                    instruccion = new InstruccionIntermedia("PARÁMETRO", String.valueOf(contadorParametro), "", parametro.getName());
+                    instrucciones.add(instruccion); //leer todos los parámetros de la función
+                    contadorParametro++; //simula crear un nuevo espacio en la pila
+                }
+                contadorParametro = 0; //reiniciar el contador porque es independiente por cada función
 
             //VARIABLES Y CONSTANTES: se retornan porque son las hojas
             case VARIABLE:
@@ -50,16 +60,20 @@ public class CodigoIntermedio {
         return "";
     }
 
-    public String generarTemporal(){
-        String temporal = "t"+contadorTemporales;
-        contadorTemporales++;
-        return temporal;
-    }
 
+    //Imprimir todas las instrucciones guardadas
     public void imprimirCodigo(){
 
         for (InstruccionIntermedia instruccion : instrucciones) {
             instruccion.imprimir();
         }
     }
+
+    // GENERACIÓN
+    public String generarTemporal(){
+        String temporal = "t"+contadorTemporales;
+        contadorTemporales++;
+        return temporal;
+    }
+
 }

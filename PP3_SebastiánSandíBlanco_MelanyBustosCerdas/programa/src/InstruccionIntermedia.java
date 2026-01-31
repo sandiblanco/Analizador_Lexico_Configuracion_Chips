@@ -24,8 +24,37 @@ public class InstruccionIntermedia {
     }
 
 
-     //Imprime la instrucción en formato de código intermedio
+     //Imprime la instrucción en formato de código intermedio dependiendo del tipo de nodo
     public void imprimir(){
+
+        switch (this.operador){
+
+            //asignación
+            case "=":
+                System.out.println(argumento1 + " " + operador + " " + argumento2); //ejemplo x = t1
+                return;
+
+            //casos donde son operaciones aritméticas
+            case "+":
+            case "-":
+            case "*":
+            case "/":
+            case "//":
+            case "%":
+            case "^":
+                System.out.println(resultado + " = " + argumento1 + operador + argumento2);
+                return;
+
+            //cuando se recibe una función
+            case "FUNCIÓN":
+                System.out.println("func begin " + resultado);
+                return;
+
+            //Parámetro
+            case "PARÁMETRO":
+                System.out.println(resultado + " = " + "param[" + argumento1 + "]");
+                return;
+        }
         System.out.println(resultado + " = " + argumento1 + operador + argumento2);
     }
 }

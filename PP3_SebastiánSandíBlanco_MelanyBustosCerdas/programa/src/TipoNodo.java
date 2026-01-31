@@ -5,5 +5,7 @@ public enum TipoNodo {
     VARIABLE,
     CONSTANTE,
     OPERADOR,
-    ASIGNACION
+    ASIGNACION,
+    PARAMETROS,
+    FUNCION
 }

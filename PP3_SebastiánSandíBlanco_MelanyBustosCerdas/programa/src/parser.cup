@@ -367,13 +367,13 @@ parametros ::= {:
 
 listaParametros ::= tipo:t ID:i {:
     agregarSimbolo(i, t);
-    Nodo contenedor = new Nodo("Parámetros");
-    contenedor.agregarHijo(new Nodo("Parámetro: " + i));
+    Nodo contenedor = new Nodo("Parámetros", TipoNodo.PARAMETROS);
+    contenedor.agregarHijo(new Nodo(i));
     RESULT = contenedor;
 :}
 | listaParametros:lp COMMA tipo:t ID:i {:
     agregarSimbolo(i, t);
-    lp.agregarHijo(new Nodo("Parámetro: " + i));
+    lp.agregarHijo(new Nodo(i));
     RESULT = lp;
 :}
 | error COMMA tipo ID {:
