@@ -16,6 +16,7 @@ public class CodigoIntermedio {
     public String lecturaArbol(Nodo nodo) {
 
         InstruccionIntermedia instruccion;
+        String izquierda, derecha, temporal;
         switch (nodo.getTipo()){
 
             //NODOS DE FLUJO: Se recorren sus hijos
@@ -26,11 +27,20 @@ public class CodigoIntermedio {
 
             //OPERADORES: Se recorre el hijo izquierdo y derecho
             case OPERADOR:
-                String izquierda = lecturaArbol(nodo.getHijos().get(0));
-                String derecha = lecturaArbol(nodo.getHijos().get(1));
-                String temporal = generarTemporal();
+                izquierda = lecturaArbol(nodo.getHijos().get(0));
+                derecha = lecturaArbol(nodo.getHijos().get(1));
+                temporal = generarTemporal();
                 instruccion = new InstruccionIntermedia(nodo.getName(), izquierda, derecha, temporal);
                 instrucciones.add(instruccion);
+                return temporal;
+
+            //ASIGNACIÓN: Aquí el resultado de la instrucción va a ser el hijo izquierdo
+            case ASIGNACION:
+                izquierda = lecturaArbol(nodo.getHijos().get(0));
+                derecha = lecturaArbol(nodo.getHijos().get(1));
+                instruccion = new InstruccionIntermedia("", "", derecha, izquierda);
+                instrucciones.add(instruccion);
+                return izquierda;
 
             //VARIABLES Y CONSTANTES: se retornan porque son las hojas
             case VARIABLE:

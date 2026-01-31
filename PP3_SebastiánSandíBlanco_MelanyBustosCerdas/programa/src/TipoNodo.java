@@ -4,5 +4,6 @@ public enum TipoNodo {
     FLUJO,
     VARIABLE,
     CONSTANTE,
-    OPERADOR
+    OPERADOR,
+    ASIGNACION
 }

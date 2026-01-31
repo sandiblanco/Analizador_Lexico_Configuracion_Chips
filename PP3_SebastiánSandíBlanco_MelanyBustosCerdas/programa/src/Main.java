@@ -142,7 +142,7 @@ public class Main {
             generados.Scanner lexer = new generados.Scanner(lector);
             generados.parser p = new generados.parser(lexer);
 
-            System.out.println(GREEN + "\n--- CÓDIGO INTERMEDIO ---\n" + RESET);
+            System.out.println(GREEN + "\n--- CÓDIGO INTERMEDIO ---" + RESET);
             Nodo raiz = (Nodo) p.parse().value;
 
             if (raiz != null) {
