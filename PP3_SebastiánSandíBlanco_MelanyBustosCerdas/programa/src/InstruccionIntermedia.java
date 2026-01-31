@@ -54,6 +54,30 @@ public class InstruccionIntermedia {
             case "PARÁMETRO":
                 System.out.println(resultado + " = " + "param[" + argumento1 + "]");
                 return;
+
+
+            //DECLARACIONES
+            case "ENTERO":
+                System.out.println("dataInt " + resultado + " default 0");
+                return;
+
+            case "FLOTANTE":
+                System.out.println("dataFloat " + resultado + " default 0.0");
+                return;
+
+            case "CARACTER":
+                System.out.println("dataChar " + resultado + " default '\\0'");
+                return;
+
+            case "BOOLEANO":
+                System.out.println("dataBool " + resultado + " default true");
+                return;
+
+            case "STRING":
+                System.out.println("dataString " + resultado + " default null");
+                return;
+
+
         }
         System.out.println(resultado + " = " + argumento1 + operador + argumento2);
     }

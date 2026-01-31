@@ -25,6 +25,30 @@ public class CodigoIntermedio {
                     lecturaArbol(hijo);
                 return "";
 
+            //TIPO: sirve para las declaraciones sin asignación
+            case TIPO:
+                String identificador = nodo.getHijos().get(0).getName();
+
+                // Lógica de declaraciones según el tipo del identificador
+                if (nodo.getName().contains("int")) {
+                    instruccion = new InstruccionIntermedia("ENTERO", "", "", identificador);
+                    instrucciones.add(instruccion);
+                } else if (nodo.getName().contains("float")) {
+                    instruccion = new InstruccionIntermedia("FLOTANTE", "", "", identificador);
+                    instrucciones.add(instruccion);
+                } else if (nodo.getName().contains("bool")) {
+                    instruccion = new InstruccionIntermedia("BOOLEANO", "", "", identificador);
+                    instrucciones.add(instruccion);
+                } else if (nodo.getName().contains("string")) {
+                    instruccion = new InstruccionIntermedia("STRING", "", "", identificador);
+                    instrucciones.add(instruccion);
+                } else if (nodo.getName().contains("char")) {
+                    instruccion = new InstruccionIntermedia("CARACTER", "", "", identificador);
+                    instrucciones.add(instruccion);
+                }
+                return "";
+
+
             //OPERADORES o ASIGNACIONES: Se recorre el hijo izquierdo y derecho
             case OPERADOR:
             case ASIGNACION:

@@ -284,7 +284,14 @@ elementoGlobal ::=
 declaracionGlobal ::= WORLD tipo:t ID:i ENDL {:
   scopeActual = "GLOBAL";
   agregarSimbolo(i, t);
-  Nodo declaracionG = new Nodo("Declaración global: " + t + " " + i);
+
+  Nodo identificador = new Nodo(i);
+  Nodo tipo = new Nodo(t, TipoNodo.TIPO);
+  Nodo declaracionG = new Nodo("Declaración global");
+
+  //agregar como hijos
+  tipo.agregarHijo(identificador);
+  declaracionG.agregarHijo(tipo);
   RESULT = declaracionG;
 
 :}
