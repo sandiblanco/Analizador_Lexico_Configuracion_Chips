@@ -637,7 +637,8 @@ salidaLoop ::= EXIT WHEN expresion:e ENDL {:
 sentenciaFor ::= FOR LPAREN {:
                entrarBloque("for");:}
                forIniciar:fi ENDL expresion:e ENDL forActualizar:fa RPAREN bloque:b {:
-               Nodo n = new Nodo("Sentencia For");
+
+               Nodo n = new Nodo("FOR", TipoNodo.FOR);
                n.agregarHijo(fi);
                n.agregarHijo(e);
                n.agregarHijo(fa);
@@ -651,14 +652,26 @@ sentenciaFor ::= FOR LPAREN {:
 forIniciar ::= tipo:t ID:i ASSIGN expresion:e
       {:
           agregarSimbolo(i, t);
-          Nodo n = new Nodo("For Inicio");
-          n.agregarHijo(e);
+          Nodo n = new Nodo("Valor inicial del for");
+          Nodo asignacion = new Nodo("=", TipoNodo.ASIGNACION);
+          Nodo identificador = new Nodo(i.toString(),TipoNodo.VARIABLE);
+
+          asignacion.agregarHijo(identificador);
+          asignacion.agregarHijo(e);
+
+          n.agregarHijo(asignacion);
           RESULT = n;
       :}
-    | ID ASSIGN expresion:e
+    | ID:i ASSIGN expresion:e
       {:
-          Nodo n = new Nodo("For Inicio");
-          n.agregarHijo(e);
+          Nodo n = new Nodo("Valor inicial del for");
+          Nodo asignacion = new Nodo("=", TipoNodo.ASIGNACION);
+          Nodo identificador = new Nodo(i.toString());
+
+          asignacion.agregarHijo(identificador);
+          asignacion.agregarHijo(e);
+
+          n.agregarHijo(asignacion);
           RESULT = n;
       :}
 ;
@@ -666,8 +679,21 @@ forIniciar ::= tipo:t ID:i ASSIGN expresion:e
 
 forActualizar ::=  INC ID:i
       {:
-          Nodo n = new Nodo("For Actualización (++ )");
-          n.agregarHijo(new Nodo("Variable: " + i));
+          Nodo n = new Nodo("Actualización del for");
+          Nodo asignacion = new Nodo("=", TipoNodo.ASIGNACION);
+          Nodo id = new Nodo(i, TipoNodo.VARIABLE);
+          Nodo incremento = new Nodo("+", TipoNodo.ASIGNACION); //i = i + 1
+          Nodo idIncremento = new Nodo(i, TipoNodo.VARIABLE);
+          Nodo incrementoDeUno = new Nodo("1", TipoNodo.CONSTANTE);
+
+          incremento.agregarHijo(idIncremento);
+          incremento.agregarHijo(incrementoDeUno);
+          asignacion.agregarHijo(id);
+          asignacion.agregarHijo(incremento);
+
+          n.agregarHijo(asignacion);
+
+
           RESULT = n;
       :}
     | DEC ID:i
@@ -741,9 +767,9 @@ factorLogico ::= NOT factorLogico:f {:
 
 expresionRelacional ::= expresionAritmetica:e1 operadorRelacional:o expresionAritmetica:e2 {:
                             Nodo n = new Nodo("Expresión Relacional");
-                            n.agregarHijo(e1);
+                            o.agregarHijo(e1); //agregar al operador relacional su argumento izquierdo
+                            o.agregarHijo(e2); //agregar al operador relacional su argumento derecho
                             n.agregarHijo(o);
-                            n.agregarHijo(e2);
                             RESULT = n;
                         :}
                       | expresionAritmetica:e {:
@@ -751,12 +777,12 @@ expresionRelacional ::= expresionAritmetica:e1 operadorRelacional:o expresionAri
 ;
 
 operadorRelacional ::=
-      LOWTHAN {: RESULT = new Nodo("<");  :}
-    | LOWEQ   {: RESULT = new Nodo("<="); :}
-    | GTHAN   {: RESULT = new Nodo(">");  :}
-    | GEQ     {: RESULT = new Nodo(">="); :}
-    | EQ      {: RESULT = new Nodo("=="); :}
-    | NEQ     {: RESULT = new Nodo("!="); :}
+      LOWTHAN {: RESULT = new Nodo("<", TipoNodo.OPERADOR);  :}
+    | LOWEQ   {: RESULT = new Nodo("<=", TipoNodo.OPERADOR); :}
+    | GTHAN   {: RESULT = new Nodo(">", TipoNodo.OPERADOR);  :}
+    | GEQ     {: RESULT = new Nodo(">=", TipoNodo.OPERADOR); :}
+    | EQ      {: RESULT = new Nodo("==", TipoNodo.OPERADOR); :}
+    | NEQ     {: RESULT = new Nodo("!=", TipoNodo.OPERADOR); :}
 ;
 
 expresionAritmetica ::= expresionAritmetica:e PLUS termino:t {:

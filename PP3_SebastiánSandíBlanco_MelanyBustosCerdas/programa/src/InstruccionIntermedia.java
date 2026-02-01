@@ -60,6 +60,20 @@ public class InstruccionIntermedia {
                 System.out.println(resultado + " = " + "param[" + argumento1 + "]");
                 return;
 
+            //SENTENCIA FOR
+            case "ETIQUETA INICIAL":
+                System.out.println(resultado + ":");
+                return;
+            case "ETIQUETA FINAL":
+                System.out.println(resultado + ":");
+                return;
+            case "JUMP":
+                System.out.println("goto " + resultado);
+                return;
+            case "JUMP IF FALSE":
+                System.out.println("ifFalse " + argumento1 + " goto " + resultado);
+                return;
+
 
             //DECLARACIONES
             case "ENTERO":

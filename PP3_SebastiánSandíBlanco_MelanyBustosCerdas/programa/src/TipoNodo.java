@@ -9,5 +9,6 @@ public enum TipoNodo {
     ASIGNACION,
     PARAMETROS,
     FUNCION,
-    TIPO
+    TIPO,
+    FOR
 }

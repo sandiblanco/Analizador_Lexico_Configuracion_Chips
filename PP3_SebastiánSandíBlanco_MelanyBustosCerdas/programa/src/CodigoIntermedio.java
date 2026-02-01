@@ -8,6 +8,7 @@ public class CodigoIntermedio {
     private List<InstruccionIntermedia> instrucciones;
     private int contadorTemporales;
     private int contadorParametro;
+    private int contadorEtiqueta;
 
     public CodigoIntermedio(){
         this.instrucciones = new ArrayList<>();
@@ -16,16 +17,51 @@ public class CodigoIntermedio {
     public String lecturaArbol(Nodo nodo) {
 
         InstruccionIntermedia instruccion;
-        String izquierda, derecha, temporal;
+        String izquierda, derecha, temporal = "";
         switch (nodo.getTipo()){
 
             //NODOS DE FLUJO: Se recorren sus hijos, no es necesario crear una cuádrupla
             case FLUJO:
                 for (Nodo hijo : nodo.getHijos())
-                    lecturaArbol(hijo);
+                    temporal = lecturaArbol(hijo);
+                return temporal;
+
+            //FOR
+            case FOR:
+                //Asignación inicial i = 0
+                lecturaArbol(nodo.getHijos().get(0));
+
+                //Etiqueta inicial L1
+                contadorEtiqueta++;
+                String etiquetaInicio = "L"+contadorEtiqueta;
+                contadorEtiqueta++;
+                String etiquetaCierre = "L"+contadorEtiqueta;
+                instruccion = new InstruccionIntermedia("ETIQUETA INICIAL", "", "", etiquetaInicio);
+                instrucciones.add(instruccion);
+
+                //Condición del for i < 10
+                temporal = lecturaArbol(nodo.getHijos().get(1));
+
+                //SALTO
+                instruccion = new InstruccionIntermedia("JUMP IF FALSE", temporal, "", etiquetaCierre);
+                instrucciones.add(instruccion);
+
+                //Bloque de sentencias
+                if(nodo.getHijos().get(3) != null)
+                    lecturaArbol(nodo.getHijos().get(3)); //el bloque del for
+
+                //Atualización i++
+                lecturaArbol(nodo.getHijos().get(2));
+
+                //JUMP FINAL
+                instruccion = new InstruccionIntermedia("JUMP", "", "", etiquetaInicio);
+                instrucciones.add(instruccion);
+
+                //Etiqueta de cierre
+                instruccion = new InstruccionIntermedia("ETIQUETA FINAL", "", "", etiquetaCierre);
+                instrucciones.add(instruccion);
+
                 return "";
-
-
 
             //OPERADORES o ASIGNACIONES: Se recorre el hijo izquierdo y derecho
             case OPERADOR:
@@ -101,6 +137,12 @@ public class CodigoIntermedio {
     public String generarTemporal(){
         String temporal = "t"+contadorTemporales;
         contadorTemporales++;
+        return temporal;
+    }
+
+    public String generarEtiqueta(){
+        String temporal = "L"+contadorEtiqueta;
+        contadorEtiqueta++;
         return temporal;
     }
 
