@@ -83,6 +83,18 @@ public class InstruccionIntermedia {
             case "JUMP IF FALSE":
                 lineaDeCodigo = "ifFalse " + argumento1 + " goto " + resultado;
                 break;
+            case "IF END":
+                lineaDeCodigo = "goto endF";
+                break;
+            case "ELSE":
+                lineaDeCodigo = "else:";
+                break;
+            case "ETIQUETA FINAL IF":
+                lineaDeCodigo = "endF:";
+                break;
+            case "SIGUIENTE CASO":
+                lineaDeCodigo = resultado + ":";
+                break;
 
 
             //DECLARACIONES

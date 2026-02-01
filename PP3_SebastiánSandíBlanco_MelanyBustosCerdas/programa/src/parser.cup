@@ -569,7 +569,7 @@ sentenciaLeer ::= GET ID ENDL {: RESULT = new Nodo("Sentencia Get"); :}
 sentenciaDecide ::= DECIDE OF {:
                   entrarBloque("decide");:}
                   casosDecide:cd casoElse:ce END DECIDE ENDL {:
-                  Nodo n = new Nodo("IF");
+                  Nodo n = new Nodo("IF", TipoNodo.IF);
                   n.agregarHijo(cd);
                   n.agregarHijo(ce);
                   salirBloque();
@@ -589,7 +589,7 @@ casosDecide ::= casoDecide:c {:
 ;
 
 casoDecide ::= expresion:e ARROW bloque:b {:
-                Nodo n = new Nodo("Caso");
+                Nodo n = new Nodo("Caso", TipoNodo.CASO);
                 n.agregarHijo(e);
                 n.agregarHijo(b);
                 RESULT = n;
@@ -604,9 +604,9 @@ casoDecide ::= expresion:e ARROW bloque:b {:
                   :}
 ;
 
-casoElse ::= {: RESULT = new Nodo("Sin caso Else"); :}
+casoElse ::= {: RESULT = new Nodo("Sin caso Else", TipoNodo.NO_ELSE); :}
            | ELSE ARROW bloque:b {:
-                Nodo n = new Nodo("Caso Else");
+                Nodo n = new Nodo("Caso Else", TipoNodo.CASO_ELSE);
                 n.agregarHijo(b);
                 RESULT = n;
              :}

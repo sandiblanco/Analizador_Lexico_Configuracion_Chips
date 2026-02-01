@@ -12,5 +12,9 @@ public enum TipoNodo {
     TIPO,
     FOR,
     LOOP,
+    IF,
+    CASO,
+    NO_ELSE,
+    CASO_ELSE,
     NEGACION
 }

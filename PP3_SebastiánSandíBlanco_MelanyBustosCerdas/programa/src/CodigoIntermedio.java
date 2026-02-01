@@ -17,7 +17,7 @@ public class CodigoIntermedio {
     public String lecturaArbol(Nodo nodo) {
 
         InstruccionIntermedia instruccion;
-        String izquierda, derecha, etiquetaInicio, etiquetaCierre, temporal = "";
+        String izquierda, derecha, etiquetaInicio, etiquetaCierre, casosDecide, temporal = "";
         switch (nodo.getTipo()){
 
             //NODOS DE FLUJO: Se recorren sus hijos, no es necesario crear una cuádrupla
@@ -96,6 +96,60 @@ public class CodigoIntermedio {
                 instrucciones.add(instruccion);
 
                 return temporal;
+
+//IF
+            case IF:
+                casosDecide = lecturaArbol(nodo.getHijos().getFirst());
+
+                Nodo ultimoHijo = nodo.getHijos().getLast();
+                boolean tieneElse = ultimoHijo.getTipo() == TipoNodo.CASO_ELSE;
+
+                //If simple (un solo caso, sin else)
+                if (nodo.getHijos().size() == 1) {
+                    lecturaArbol(nodo.getHijos().getFirst());
+                    instruccion = new InstruccionIntermedia("ETIQUETA FINAL IF", "", "", "");
+                    instrucciones.add(instruccion);
+                    return "";
+                }
+
+                //If con varios casos
+                lecturaArbol(nodo.getHijos().getFirst());
+
+                //If con else
+                if (tieneElse) {
+                    instruccion = new InstruccionIntermedia("ELSE", "", "", "");
+                    instrucciones.add(instruccion);
+                    lecturaArbol(ultimoHijo);
+                }
+
+                instruccion = new InstruccionIntermedia("ETIQUETA FINAL IF", "", "", "");
+                instrucciones.add(instruccion);
+                return "";
+
+
+            case CASO:
+
+                String expresionRelacional = lecturaArbol(nodo.getHijos().getFirst());
+
+                //ETIQUETA DE SIGUIENTE CASO
+                String etiquetaCaso = generarEtiqueta();
+
+                //JUMP
+                instruccion = new InstruccionIntermedia("JUMP IF FALSE", expresionRelacional, "", etiquetaCaso);
+                instrucciones.add(instruccion);
+
+                //Recorrer el bloque
+                lecturaArbol(nodo.getHijos().getLast());
+
+                //JUMP al final del IF
+                instruccion = new InstruccionIntermedia("IF END", "", "", etiquetaCaso);
+                instrucciones.add(instruccion);
+
+                //Inicio deL siguiente caso con una etiqueta
+                instruccion = new InstruccionIntermedia("SIGUIENTE CASO", "", "", etiquetaCaso);
+                instrucciones.add(instruccion);
+
+                return "";
 
             //OPERADORES o ASIGNACIONES: Se recorre el hijo izquierdo y derecho
             case OPERADOR:
