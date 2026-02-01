@@ -26,13 +26,15 @@ public class InstruccionIntermedia {
 
      //Imprime la instrucción en formato de código intermedio dependiendo del tipo de nodo
     public void imprimir(){
+        
+        String lineaDeCodigo = "";
 
         switch (this.operador){
 
             //asignación
             case "=":
-                System.out.println(argumento1 + " " + operador + " " + argumento2); //ejemplo x = t1
-                return;
+                lineaDeCodigo = argumento1 + " " + operador + " " + argumento2; //ejemplo x = t1
+                break;
 
             //casos donde son operaciones aritméticas
             case "+":
@@ -42,62 +44,74 @@ public class InstruccionIntermedia {
             case "//":
             case "%":
             case "^":
-                System.out.println(resultado + " = " + argumento1 + operador + argumento2);
-                return;
+            case ">":
+            case "<":
+            case "<=":
+            case ">=":
+            case "==":
+            case "!=":
+            case "AND":
+            case "OR":
+                lineaDeCodigo = resultado + " = " + argumento1 + operador + argumento2;
+                break;
 
             //cuando se recibe una función
             case "FUNCIÓN":
-                System.out.println("func begin " + resultado);
-                return;
+                lineaDeCodigo = "func begin " + resultado;
+                break;
 
             //La instrucción final de la función
             case "FIN DE FUNCIÓN":
-                System.out.println("func end");
-                return;
+                lineaDeCodigo = "func end";
+                break;
 
             //Parámetro
             case "PARÁMETRO":
-                System.out.println(resultado + " = " + "param[" + argumento1 + "]");
-                return;
+                lineaDeCodigo = resultado + " = " + "param[" + argumento1 + "]";
+                break;
 
             //SENTENCIA FOR
             case "ETIQUETA INICIAL":
-                System.out.println(resultado + ":");
-                return;
+                lineaDeCodigo = resultado + ":";
+                break;
             case "ETIQUETA FINAL":
-                System.out.println(resultado + ":");
-                return;
+                lineaDeCodigo = resultado + ":";
+                break;
             case "JUMP":
-                System.out.println("goto " + resultado);
-                return;
+                lineaDeCodigo = "goto " + resultado;
+                break;
             case "JUMP IF FALSE":
-                System.out.println("ifFalse " + argumento1 + " goto " + resultado);
-                return;
+                lineaDeCodigo = "ifFalse " + argumento1 + " goto " + resultado;
+                break;
 
 
             //DECLARACIONES
             case "ENTERO":
-                System.out.println("dataInt " + resultado + " default 0");
-                return;
+                lineaDeCodigo = "dataInt " + resultado + " default 0";
+                break;
 
             case "FLOTANTE":
-                System.out.println("dataFloat " + resultado + " default 0.0");
-                return;
+                lineaDeCodigo = "dataFloat " + resultado + " default 0.0";
+                break;
 
             case "CARACTER":
-                System.out.println("dataChar " + resultado + " default '\\0'");
-                return;
+                lineaDeCodigo = "dataChar " + resultado + " default '\\0'";
+                break;
 
             case "BOOLEANO":
-                System.out.println("dataBool " + resultado + " default true");
-                return;
+                lineaDeCodigo = "dataBool " + resultado + " default true";
+                break;
 
             case "STRING":
-                System.out.println("dataString " + resultado + " default null");
-                return;
+                lineaDeCodigo = "dataString " + resultado + " default null";
+                break;
+
+            case "NEGACION":
+                lineaDeCodigo = resultado + " = !" + argumento1;
+                break;
 
 
         }
-        System.out.println(resultado + " = " + argumento1 + operador + argumento2);
+        System.out.println(lineaDeCodigo);
     }
 }

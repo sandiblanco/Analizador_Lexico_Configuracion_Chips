@@ -17,7 +17,7 @@ public class CodigoIntermedio {
     public String lecturaArbol(Nodo nodo) {
 
         InstruccionIntermedia instruccion;
-        String izquierda, derecha, temporal = "";
+        String izquierda, derecha, etiquetaInicio, etiquetaCierre, temporal = "";
         switch (nodo.getTipo()){
 
             //NODOS DE FLUJO: Se recorren sus hijos, no es necesario crear una cuádrupla
@@ -33,9 +33,9 @@ public class CodigoIntermedio {
 
                 //Etiqueta inicial L1
                 contadorEtiqueta++;
-                String etiquetaInicio = "L"+contadorEtiqueta;
+                etiquetaInicio = "L"+contadorEtiqueta;
                 contadorEtiqueta++;
-                String etiquetaCierre = "L"+contadorEtiqueta;
+                etiquetaCierre = "L"+contadorEtiqueta;
                 instruccion = new InstruccionIntermedia("ETIQUETA INICIAL", "", "", etiquetaInicio);
                 instrucciones.add(instruccion);
 
@@ -63,6 +63,40 @@ public class CodigoIntermedio {
 
                 return "";
 
+            //LOOP
+            case LOOP:
+                Nodo bloqueLoop = nodo.getHijos().getFirst();
+                Nodo condicionSalida = nodo.getHijos().getLast();
+
+                //Etiqueta inicial L1
+                contadorEtiqueta++;
+                etiquetaInicio = "L"+contadorEtiqueta;
+                contadorEtiqueta++;
+                etiquetaCierre = "L"+contadorEtiqueta;
+                instruccion = new InstruccionIntermedia("ETIQUETA INICIAL", "", "", etiquetaInicio);
+                instrucciones.add(instruccion);
+
+                //Condición del LOOP i < 10
+                temporal = lecturaArbol(condicionSalida);
+
+                //SALTO
+                instruccion = new InstruccionIntermedia("JUMP IF FALSE", temporal, "", etiquetaCierre);
+                instrucciones.add(instruccion);
+
+                //Bloque de sentencias
+                if(bloqueLoop != null)
+                    lecturaArbol(bloqueLoop); //el bloque del LOOP
+
+                //JUMP FINAL
+                instruccion = new InstruccionIntermedia("JUMP", "", "", etiquetaInicio);
+                instrucciones.add(instruccion);
+
+                //Etiqueta de cierre
+                instruccion = new InstruccionIntermedia("ETIQUETA FINAL", "", "", etiquetaCierre);
+                instrucciones.add(instruccion);
+
+                return temporal;
+
             //OPERADORES o ASIGNACIONES: Se recorre el hijo izquierdo y derecho
             case OPERADOR:
             case ASIGNACION:
@@ -70,6 +104,13 @@ public class CodigoIntermedio {
                 derecha = lecturaArbol(nodo.getHijos().get(1));
                 temporal = generarTemporal();
                 instruccion = new InstruccionIntermedia(nodo.getName(), izquierda, derecha, temporal);
+                instrucciones.add(instruccion);
+                return temporal;
+
+            case NEGACION:
+                String expresion = lecturaArbol(nodo.getHijos().getFirst()); //obtener la expresión luego de la negación
+                temporal = generarTemporal();
+                instruccion = new InstruccionIntermedia("NEGACION", expresion, "", temporal);
                 instrucciones.add(instruccion);
                 return temporal;
 

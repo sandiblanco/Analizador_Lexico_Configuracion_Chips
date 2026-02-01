@@ -10,5 +10,7 @@ public enum TipoNodo {
     PARAMETROS,
     FUNCION,
     TIPO,
-    FOR
+    FOR,
+    LOOP,
+    NEGACION
 }

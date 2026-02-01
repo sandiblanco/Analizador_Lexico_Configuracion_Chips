@@ -569,7 +569,7 @@ sentenciaLeer ::= GET ID ENDL {: RESULT = new Nodo("Sentencia Get"); :}
 sentenciaDecide ::= DECIDE OF {:
                   entrarBloque("decide");:}
                   casosDecide:cd casoElse:ce END DECIDE ENDL {:
-                  Nodo n = new Nodo("Sentencia Decide");
+                  Nodo n = new Nodo("IF");
                   n.agregarHijo(cd);
                   n.agregarHijo(ce);
                   salirBloque();
@@ -615,7 +615,7 @@ casoElse ::= {: RESULT = new Nodo("Sin caso Else"); :}
 sentenciaLoop ::= LOOP {:
                 entrarBloque("loop");:}
                 listaSentencias:ls salidaLoop:sl END LOOP ENDL {:
-                    Nodo n = new Nodo("Sentencia Loop");
+                    Nodo n = new Nodo("LOOP", TipoNodo.LOOP);
                     n.agregarHijo(ls);
                     n.agregarHijo(sl);
                     salirBloque();
@@ -737,7 +737,7 @@ listaArgumentos ::= expresion:e {:
 ;
 
 expresion ::= expresion:e OR terminoLogico:t {:
-                        Nodo n = new Nodo("Expresión Lógica (OR)");
+                        Nodo n = new Nodo("OR", TipoNodo.OPERADOR);
                         n.agregarHijo(e);
                         n.agregarHijo(t);
                         RESULT = n;
@@ -747,7 +747,7 @@ expresion ::= expresion:e OR terminoLogico:t {:
 ;
 
 terminoLogico ::= terminoLogico:t AND factorLogico:f {:
-                    Nodo n = new Nodo("Término Lógico (AND)");
+                    Nodo n = new Nodo("AND", TipoNodo.OPERADOR);
                     n.agregarHijo(t);
                     n.agregarHijo(f);
                     RESULT = n;
@@ -757,7 +757,7 @@ terminoLogico ::= terminoLogico:t AND factorLogico:f {:
 ;
 
 factorLogico ::= NOT factorLogico:f {:
-                    Nodo n = new Nodo("Negación Lógica");
+                    Nodo n = new Nodo("Negación Lógica", TipoNodo.NEGACION);
                     n.agregarHijo(f);
                     RESULT = n;
                  :}

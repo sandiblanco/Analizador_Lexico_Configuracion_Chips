@@ -61,7 +61,7 @@ public class Nodo {
             color = YELLOW;
         } else if (nombre == "Función") {
             color = PURPLE;
-        } else if (nombre == "FOR") {
+        } else if (nombre == "FOR" || nombre == "LOOP" || nombre == "IF") {
             color = BLUE;
         } else if (nombre.contains("PROGRAMA")) {
             color = CYAN;
