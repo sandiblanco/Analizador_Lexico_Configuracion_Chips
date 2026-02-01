@@ -50,6 +50,11 @@ public class InstruccionIntermedia {
                 System.out.println("func begin " + resultado);
                 return;
 
+            //La instrucción final de la función
+            case "FIN DE FUNCIÓN":
+                System.out.println("func end");
+                return;
+
             //Parámetro
             case "PARÁMETRO":
                 System.out.println(resultado + " = " + "param[" + argumento1 + "]");

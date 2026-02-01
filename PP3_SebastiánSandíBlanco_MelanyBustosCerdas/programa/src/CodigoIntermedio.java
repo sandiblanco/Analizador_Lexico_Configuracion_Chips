@@ -25,6 +25,38 @@ public class CodigoIntermedio {
                     lecturaArbol(hijo);
                 return "";
 
+
+
+            //OPERADORES o ASIGNACIONES: Se recorre el hijo izquierdo y derecho
+            case OPERADOR:
+            case ASIGNACION:
+                izquierda = lecturaArbol(nodo.getHijos().get(0));
+                derecha = lecturaArbol(nodo.getHijos().get(1));
+                temporal = generarTemporal();
+                instruccion = new InstruccionIntermedia(nodo.getName(), izquierda, derecha, temporal);
+                instrucciones.add(instruccion);
+                return temporal;
+
+            //FUNCION:
+            case FUNCION:
+                //Añadir primero la instrucción de función para hacer "func begin" antes del bloque
+                instruccion = new InstruccionIntermedia("FUNCIÓN", "", "", nodo.getName());
+                instrucciones.add(instruccion);
+                izquierda = lecturaArbol(nodo.getHijos().get(0)); //Estos son los parámetros
+                derecha = lecturaArbol(nodo.getHijos().get(1)); //Este es el bloque de la función
+                //instrucción final
+                InstruccionIntermedia instruccionFinal = new InstruccionIntermedia("FIN DE FUNCIÓN", "", "", "");
+                instrucciones.add(instruccionFinal);
+                return "";
+
+            case PARAMETROS:
+                for (Nodo parametro : nodo.getHijos()) {
+                    instruccion = new InstruccionIntermedia("PARÁMETRO", String.valueOf(contadorParametro), "", parametro.getName());
+                    instrucciones.add(instruccion); //leer todos los parámetros de la función
+                    contadorParametro++; //simula crear un nuevo espacio en la pila
+                }
+                contadorParametro = 0; //reiniciar el contador porque es independiente por cada función
+
             //TIPO: sirve para las declaraciones sin asignación
             case TIPO:
                 String identificador = nodo.getHijos().get(0).getName();
@@ -47,34 +79,6 @@ public class CodigoIntermedio {
                     instrucciones.add(instruccion);
                 }
                 return "";
-
-
-            //OPERADORES o ASIGNACIONES: Se recorre el hijo izquierdo y derecho
-            case OPERADOR:
-            case ASIGNACION:
-                izquierda = lecturaArbol(nodo.getHijos().get(0));
-                derecha = lecturaArbol(nodo.getHijos().get(1));
-                temporal = generarTemporal();
-                instruccion = new InstruccionIntermedia(nodo.getName(), izquierda, derecha, temporal);
-                instrucciones.add(instruccion);
-                return temporal;
-
-            //FUNCION:
-            case FUNCION:
-                //Añadir primero la instrucción de función para hacer "func begin" antes del bloque
-                instruccion = new InstruccionIntermedia("FUNCIÓN", "", "", nodo.getName());
-                instrucciones.add(instruccion);
-                izquierda = lecturaArbol(nodo.getHijos().get(0)); //Estos son los parámetros
-                derecha = lecturaArbol(nodo.getHijos().get(1)); //Este es el bloque de la función
-                return "";
-
-            case PARAMETROS:
-                for (Nodo parametro : nodo.getHijos()) {
-                    instruccion = new InstruccionIntermedia("PARÁMETRO", String.valueOf(contadorParametro), "", parametro.getName());
-                    instrucciones.add(instruccion); //leer todos los parámetros de la función
-                    contadorParametro++; //simula crear un nuevo espacio en la pila
-                }
-                contadorParametro = 0; //reiniciar el contador porque es independiente por cada función
 
             //VARIABLES Y CONSTANTES: se retornan porque son las hojas
             case VARIABLE:

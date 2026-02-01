@@ -474,17 +474,27 @@ declaracionVariable ::=
       tipo:t ID:i ENDL
       {:
           agregarSimbolo(i, t);
-          RESULT = new Nodo("Declaración de variable: " + t + " " + i);
+
+          Nodo identificador = new Nodo(i);
+          Nodo tipo = new Nodo(t, TipoNodo.TIPO);
+          Nodo declaracionLocal = new Nodo("Declaración de variable sin asignación");
+
+          //agregar como hijos
+          tipo.agregarHijo(identificador);
+          declaracionLocal.agregarHijo(tipo);
+          RESULT = declaracionLocal;
+
       :}
       | tipo:t ID:i ASSIGN expresion:e ENDL
         {:
             agregarSimbolo(i, t);
-            Nodo n = new Nodo("Declaración de variable con asignación");
+            Nodo declaracionLocal = new Nodo("Declaración de variable con asignación: " + t + " " + i );
             Nodo assign = new Nodo("=", TipoNodo.ASIGNACION);
-            assign.agregarHijo(new Nodo(i.toString()));
+            assign.agregarHijo(new Nodo(i.toString(), TipoNodo.VARIABLE));
             assign.agregarHijo(e);
-            n.agregarHijo(assign);
-            RESULT = n;
+            declaracionLocal.agregarHijo(assign);
+            RESULT = declaracionLocal;
+
         :}
       | ID ENDL
                    {:
