@@ -79,7 +79,7 @@ MultiLineComment  = "є" [^"э"]* "э"
   /* Tipos de datos */
   "int"          { return symbol(sym.INT, yytext()); }
   "float"        { return symbol(sym.FLOAT, yytext()); }
-  "boolean"         { return symbol(sym.BOOL, yytext()); }
+  "bool"         { return symbol(sym.BOOL, yytext()); }
   "char"            { return symbol(sym.CHAR, yytext()); }
   "string"          { return symbol(sym.STRING, yytext()); }
 
