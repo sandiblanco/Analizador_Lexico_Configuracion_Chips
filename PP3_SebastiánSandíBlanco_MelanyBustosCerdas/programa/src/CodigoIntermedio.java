@@ -188,6 +188,11 @@ public class CodigoIntermedio {
                 }
                 contadorParametro = 0; //reiniciar el contador porque es independiente por cada función
 
+            case SHOW:
+                expresion = lecturaArbol(nodo.getHijos().getFirst());
+                instruccion = new InstruccionIntermedia("SHOW","", "", expresion);
+                instrucciones.add(instruccion); //leer todos los parámetros de la función
+
             //TIPO: sirve para las declaraciones sin asignación
             case TIPO:
                 String identificador = nodo.getHijos().get(0).getName();

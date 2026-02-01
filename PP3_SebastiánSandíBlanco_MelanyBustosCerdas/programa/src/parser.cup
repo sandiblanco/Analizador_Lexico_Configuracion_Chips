@@ -504,13 +504,13 @@ declaracionVariable ::=
                    :}
 ;
 
-declaracionArreglo ::= tipo:t ID:i LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ENDL {:
+declaracionArreglo ::= tipo:t ID:i LBRACKET INT_LITERAL:e RBRACKET LBRACKET INT_LITERAL:e2 RBRACKET ENDL {:
                          agregarSimbolo(i, t + "[ ][ ]");
-                        RESULT = new Nodo("Declaración arreglo bidimensional: " + i + " " + t + "[ ][ ]");
+                        RESULT = new Nodo("Declaración arreglo bidimensional: " + i + " " + t + "[" + e.toString() + "][" + e2.toString() +"]");
 :}
-   | tipo:t ID:i LBRACKET INT_LITERAL RBRACKET LBRACKET INT_LITERAL RBRACKET ASSIGN arregloAsignacion:a ENDL {:
+   | tipo:t ID:i LBRACKET INT_LITERAL:e RBRACKET LBRACKET INT_LITERAL:e2 RBRACKET ASSIGN arregloAsignacion:a ENDL {:
       agregarSimbolo(i, t + "[ ][ ]");
-      Nodo n = new Nodo("Declaración de arreglo con asignación " + i + " " + t + "[ ][ ]");
+      Nodo n = new Nodo("Declaración de arreglo con asignación " + i + " " + t + "[" + e.toString() + "][" + e2.toString() +"]");
       n.agregarHijo(a);
       RESULT = n;
 :}
@@ -557,7 +557,7 @@ valoresArreglo ::= INT_LITERAL:i  {: RESULT = new Nodo(i.toString()); :}
 ;
 
 sentenciaMostrar ::= SHOW expresion:e ENDL {:
-                        Nodo n = new Nodo("Sentencia Show");
+                        Nodo n = new Nodo("Sentencia Show", TipoNodo.SHOW);
                         n.agregarHijo(e);
                         RESULT = n;
                     :}
@@ -854,7 +854,7 @@ literal ::=
     | MINUS FLOAT_LITERAL:v {: RESULT = new Nodo("-" + v, TipoNodo.CONSTANTE); :}
     | INT_LITERAL:v    {: RESULT = new Nodo(v.toString(), TipoNodo.CONSTANTE); :}
     | FLOAT_LITERAL:v  {: RESULT = new Nodo(v.toString(), TipoNodo.CONSTANTE); :}
-    | STRING_LITERAL:v {: RESULT = new Nodo(v.toString(), TipoNodo.CONSTANTE); :}
-    | CHAR_LITERAL:v   {: RESULT = new Nodo(v.toString(), TipoNodo.CONSTANTE); :}
+    | STRING_LITERAL:v {: RESULT = new Nodo("\""+v.toString()+"\"", TipoNodo.CONSTANTE); :}
+    | CHAR_LITERAL:v   {: RESULT = new Nodo("\'"+v.toString()+"\'", TipoNodo.CONSTANTE); :}
     | BOOL_LITERAL:v   {: RESULT = new Nodo(v.toString(), TipoNodo.CONSTANTE); :}
 ;

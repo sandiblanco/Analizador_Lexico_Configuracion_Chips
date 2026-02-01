@@ -70,6 +70,10 @@ public class InstruccionIntermedia {
                 lineaDeCodigo = resultado + " = " + "param[" + argumento1 + "]";
                 break;
 
+            case "SHOW":
+                lineaDeCodigo = "print "+resultado;
+                break;
+
             //SENTENCIA FOR
             case "ETIQUETA INICIAL":
                 lineaDeCodigo = resultado + ":";

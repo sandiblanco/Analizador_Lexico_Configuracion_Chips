@@ -16,5 +16,6 @@ public enum TipoNodo {
     CASO,
     NO_ELSE,
     CASO_ELSE,
-    NEGACION
+    NEGACION,
+    SHOW
 }
