@@ -12,11 +12,15 @@ RESTRICCIONES:
 */
 
 import java.io.*;
+import java.util.List;
+
 import java_cup.runtime.Symbol;
 import generados.Scanner;
 import generados.parser;
 import generados.sym;
 import src.CodigoIntermedio;
+import src.GeneradorMIPS;
+import src.InstruccionIntermedia;
 import src.Nodo;
 
 public class Main {
@@ -25,12 +29,14 @@ public class Main {
     private static final String archivoFuente = "lectura/archivoFuente.txt";
     private static final String archivoDeErrores = "lectura/pruebaErrores.txt";
     private static final String archivoSalida = "lectura/tokens_encontrados.txt";
+    private static final String codigoMIPS = "lectura/codigoMIPS.txt";
 
     // Colores
     public static final String RESET = "\u001B[0m";
     public static final String YELLOW = "\u001B[33m";
     public static final String CYAN = "\u001B[36m";
     public static final String GREEN = "\u001B[32m";
+    static CodigoIntermedio intermedio = new CodigoIntermedio();
 
     public static void main(String[] args) throws Exception {
         menuOpciones();
@@ -144,19 +150,41 @@ public class Main {
 
     private static void generarCodigoIntermedio(){
         try {
-            CodigoIntermedio intermedio = new CodigoIntermedio();
             // Reiniciamos el lector para que el parser tenga tokens que leer
             Reader lector = new BufferedReader(new InputStreamReader(new FileInputStream(archivoFuente), "UTF-8"));
             generados.Scanner lexer = new generados.Scanner(lector);
             generados.parser p = new generados.parser(lexer);
 
-            System.out.println(GREEN + "\n--- CÓDIGO INTERMEDIO ---" + RESET);
             Nodo raiz = (Nodo) p.parse().value;
 
-            if (raiz != null) {
+            if (raiz != null)
                 intermedio.lecturaArbol(raiz);
-                intermedio.imprimirCodigo();
-            }
+        } catch (Exception e) {
+            System.err.println("Error generando código intermedio: " + e.getMessage());
+        }
+    }
+
+    private static void imprimirCodigoIntermedio(){
+        System.out.println(GREEN + "\n--- CÓDIGO INTERMEDIO ---" + RESET);
+        intermedio.imprimirCodigo();
+
+    }
+
+    private static void generarCodigoMaquina(){
+        try {
+            // Preparar los archivos de escritura y lectura
+            Reader lector = new BufferedReader(new InputStreamReader(new FileInputStream(archivoFuente), "UTF-8"));
+
+            List<InstruccionIntermedia> instrucciones = intermedio.getInstrucciones();
+            GeneradorMIPS codigoMaquina = new GeneradorMIPS(instrucciones, codigoMIPS);
+            codigoMaquina.generarCodigo();
+
+            System.out.println("Generación completada. Resultados guardados en: " + codigoMIPS);
+
+        } catch (FileNotFoundException e) {
+            System.err.println("Error: No se encontró el archivo fuente.");
+        } catch (IOException e) {
+            System.err.println("Error de lectura/escritura: " + e.getMessage());
         } catch (Exception e) {
             System.err.println("Error generando código intermedio: " + e.getMessage());
         }
@@ -175,7 +203,8 @@ public class Main {
             System.out.println("2. " + GREEN + "Análisis Sintáctico y Semántico" + RESET + " (Tabla de símbolos)");
             System.out.println("3. " + GREEN + "Árbol Sintáctico" + RESET);
             System.out.println("4. " + GREEN + "Imprimir código intermedio" + RESET);
-            System.out.println("5. Salir");
+            System.out.println("5. " + GREEN + "Convertir a código máquina" + RESET);
+            System.out.println("6. Salir");
             System.out.print("\nSeleccione una opción: ");
             try {
                 opcion = teclado.nextInt();
@@ -200,15 +229,21 @@ public class Main {
                     break;
                 case 4:
                     generarCodigoIntermedio();
+                    imprimirCodigoIntermedio();
                     esperarRegreso(teclado);
                     break;
                 case 5:
+                    generarCodigoIntermedio();
+                    generarCodigoMaquina();
+                    esperarRegreso(teclado);
+                    break;
+                case 6:
                     System.out.println("Cerrando el sistema...");
                     break;
                 default:
                     System.out.println("Opción no válida.");
             }
-        } while (opcion != 5);
+        } while (opcion != 6);
     }
 
     // Función para que el usuario tenga que presionar 0 para volver al menú
