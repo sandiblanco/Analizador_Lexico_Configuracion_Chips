@@ -1,12 +1,12 @@
 /*
 CURSO: Compiladores e Intérpretes
-PROYECTO #3: Análisis Sintáctico
+PROYECTO #3: Análisis Semántico
 ESTUDIANTES: Sebastián Sandí Blanco y Melany Bustos Cerdas
 ARCHIVO: Main.java
 
-OBJETIVO: Coordinar el análisis léxico, leer el archivo fuente y generar el reporte de tokens
+OBJETIVO: Coordinar el análisis léxico, leer el archivo fuente, generar el reporte de tokens y mostrar análisis sintáctico y semántico
 ENTRADA: Archivo 'lectura/archivoFuente.txt' o 'lectura/pruebaErrores.txt'
-SALIDA: Archivo 'lectura/tokens_encontrados.txt' con el detalle de lexemas, líneas y columnas
+SALIDA: Archivo 'lectura/tokens_encontrados.txt' con el detalle de lexemas, líneas y columnas, análisis sintáctico y semántico
 RESTRICCIONES:
 - Requiere que los archivos generados (Scanner, parser y sym) estén en la carpeta "generados"
 */
@@ -99,19 +99,27 @@ public class Main {
             Scanner scanner = new Scanner(lectorArchivo);
             parser parser = new parser(scanner);
 
-            try {
-                parser.parse();
-                parser.imprimirErrores();
-            } catch (Exception e) {
-                System.err.println("Se detectaron errores durante el análisis sintáctico.");
-            } finally {
-                System.out.println("\n--- TABLA DE SÍMBOLOS ---");
-                parser.imprimirTablaSimbolos();
-                System.out.println("\nAnálisis sintáctico finalizado");
+            System.out.println("\n--- INICIANDO ANÁLISIS SINTÁCTICO Y SEMÁNTICO ---\n");
+
+            parser.parse();
+
+            //Imprime errores después del parse
+            parser.imprimirErrores();
+
+            if (parser.errorDetectado) {
+                System.out.println("\n[ERROR] Se detectaron errores en el programa.");
+            } else {
+                System.out.println("\n[ÉXITO] Análisis finalizado sin errores.");
             }
 
+            System.out.println("\n--- TABLA DE SÍMBOLOS ---");
+            parser.imprimirTablaSimbolos();
+
+            System.out.println("\n--- FIN DEL ANÁLISIS ---");
+
         } catch (Exception e) {
-            System.err.println("Error al iniciar el análisis sintáctico.");
+            System.err.println("Error crítico durante el análisis:");
+            e.printStackTrace();
         }
     }
 
@@ -164,7 +172,7 @@ public class Main {
             System.out.println(CYAN + "          --- COMPILADOR CHIPS ---" + RESET);
             System.out.println(YELLOW + "========================================" + RESET);
             System.out.println("1. " + GREEN + "Análisis Léxico" + RESET + " (Lista de Tokens)");
-            System.out.println("2. " + GREEN + "Análisis Sintáctico" + RESET + " (Tabla de símbolos)");
+            System.out.println("2. " + GREEN + "Análisis Sintáctico y Semántico" + RESET + " (Tabla de símbolos)");
             System.out.println("3. " + GREEN + "Árbol Sintáctico" + RESET);
             System.out.println("4. " + GREEN + "Imprimir código intermedio" + RESET);
             System.out.println("5. Salir");
