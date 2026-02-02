@@ -4,15 +4,15 @@ PROYECTO #3: Análisis Semántico
 ESTUDIANTES: Sebastián Sandí Blanco y Melany Bustos Cerdas
 ARCHIVO: parser.cup
 
-OBJETIVO: Definir la gramática del lenguaje, realizar la estructura para el árbol sintáctico y la tabla de símbolos
+OBJETIVO: Definir la gramática del lenguaje, realizar la estructura para el árbol sintáctico, la tabla de símbolos y el análisis semántico.
 
-ENTRADA: Especificaciones de terminales, no terminales, precedencias, nodos y la gramática del lenguaje
+ENTRADA: Especificaciones de terminales, no terminales, precedencias, nodos y la gramática del lenguaje.
 
 SALIDA: Clase java con constantes enteras que representan cada token y analizador sintáctico generado con CUP que construye el árbol
-sintáctico y la tabla de símbolos.
+sintáctico y la tabla de símbolos, además el análisis semántico.
 
 RESTRICCIONES:
--La validación semántica se limita a errores básicos.
+-La validación semántica no indica la línea donde sucedió el error.
 
 Código obtenido de la página oficial de Cup y adaptado para el proyecto
 https://www2.cs.tum.edu/projects/cup/ */
@@ -29,10 +29,20 @@ parser code {:
 
     public boolean errorDetectado = false; //esto es para indicar si la estructura es válida o no
 
-    public void errorEnGramatica(Symbol s) {
-            errorDetectado = true;
-            System.err.println("Error sintáctico: Token inesperado '" + s.value +
-                               "' en la línea " + (s.left + 1) + ", columna " + (s.right + 1));
+    @Override
+    public void syntax_error(Symbol s) {
+        errorDetectado = true;
+        System.err.println(
+            "ERROR SINTÁCTICO → Token inesperado '" + s.value +
+            "' en línea " + (s.left + 1) +
+            ", columna " + (s.right + 1)
+        );
+    }
+
+    @Override
+    public void report_error(String message, Object info) {
+        errorDetectado = true;
+        System.err.println("ERROR: " + message);
     }
 
     public void imprimirTablaSimbolos() {
@@ -40,33 +50,48 @@ parser code {:
     }
 
     public void imprimirErrores() {
-            action_obj.imprimirErrores();
+        action_obj.imprimirErrores();
+        action_obj.imprimirErroresSemanticos();
     }
+
 :};
 
+
 action code {:
+
     LinkedHashMap<String, ArrayList<String>> tablaSimbolos = new LinkedHashMap<>();
     ArrayList<String> erroresTablaSimbolos = new ArrayList<>();
 
 
+    HashMap<String, ArrayList<String>> datosFunciones = new HashMap<>();
+
+    String funcionActual = null;
+    String tipoFuncionActual = null;
+
+    int nivelCiclo = 0;
+
+
+
     String scopeActual = "GLOBAL";
+
+     // Contadores para generar nombres de bloques
     int contadorBloques = 0;
     int contadorFor = 0;
     int contadorLoop = 0;
     int contadorDecide = 0;
 
-
+    // Relaciones entre scopes
     HashMap<String, String> raizScope = new HashMap<>();
     HashMap<String, String> nombreParaScope = new HashMap<>();
 
-
+    // Inicialización del scope GLOBAL
     {
         tablaSimbolos.put("GLOBAL", new ArrayList<>());
         raizScope.put("GLOBAL", null);
         nombreParaScope.put("GLOBAL", "GLOBAL");
     }
 
-
+    // Se ejecuta antes de entrar a una función para evitar que se definan mal los nombres de scopes
     void entrarFuncion() {
         contadorBloques = 0;
         contadorFor = 0;
@@ -78,13 +103,21 @@ action code {:
     void agregarFuncion(String nombre, String tipo) {
 
         agregarSimbolo(nombre, tipo + " (función)");
+
+        ArrayList<String> datosFunc = new ArrayList<>();
+        datosFunc.add(tipo); // tipo retorno
+        datosFunciones.put(nombre, datosFunc);
+
         String funcScope = scopeActual + "." + nombre;
         raizScope.put(funcScope, scopeActual);
         tablaSimbolos.put(funcScope, new ArrayList<>());
         nombreParaScope.put(funcScope, nombre);
+
+        funcionActual = nombre;
+        tipoFuncionActual = tipo;
+
         scopeActual = funcScope;
     }
-
 
     void entrarBloque(String tipoBloque) {
         String nombreBloque = tipoBloque;
@@ -108,7 +141,7 @@ action code {:
         }
     }
 
-
+    // Agrega variable o parámetro al scope actual
     void agregarSimbolo(String nombre, String tipo) {
         ArrayList<String> tabla = tablaSimbolos.get(scopeActual);
         if (tabla != null) {
@@ -149,6 +182,44 @@ action code {:
     public void imprimirErrores() {
         for (String err : erroresTablaSimbolos) {
             System.err.println(err);
+        }
+    }
+
+
+    ArrayList<String> erroresSemanticos = new ArrayList<>();
+
+    // Busca el tipo de una variable recorriendo scopes
+    String getTipo(String id) {
+        String scope = scopeActual;
+        while (scope != null) {
+            ArrayList<String> tabla = tablaSimbolos.get(scope);
+            if (tabla != null) {
+                for (String s : tabla) {
+                    String[] p = s.split(":");
+                    if (p[0].equals(id)) {
+                        return p[1].replace(" (función)", "");
+                    }
+                }
+            }
+            scope = raizScope.get(scope);
+        }
+        return "null";
+    }
+
+      // Registra un error semántico
+    void errorSemantico(String msg) {
+        erroresSemanticos.add("ERROR SEMÁNTICO: " + msg);
+    }
+
+    // Verifica si un tipo es numérico
+  boolean esNumerico(String t) {
+      return t.equals("int") || t.equals("float");
+  }
+
+
+    public void imprimirErroresSemanticos() {
+        for (String e : erroresSemanticos) {
+            System.err.println(e);
         }
     }
 
@@ -222,7 +293,7 @@ terminal String ENDL;      // endl
 terminal Integer   INT_LITERAL;
 terminal Double    FLOAT_LITERAL;
 terminal String    STRING_LITERAL;
-terminal Character CHAR_LITERAL;
+terminal String CHAR_LITERAL;
 terminal Boolean   BOOL_LITERAL;
 
 /* Identificador */
@@ -284,7 +355,6 @@ elementoGlobal ::=
 declaracionGlobal ::= WORLD tipo:t ID:i ENDL {:
   scopeActual = "GLOBAL";
   agregarSimbolo(i, t);
-
   Nodo identificador = new Nodo(i);
   Nodo tipo = new Nodo(t, TipoNodo.TIPO);
   Nodo declaracionG = new Nodo("Declaración global");
@@ -300,8 +370,17 @@ declaracionGlobal ::= WORLD tipo:t ID:i ENDL {:
 		    //Tabla de símbolos
         scopeActual = "GLOBAL";
         agregarSimbolo(i, t);
+
+        //Valida que la variable y la expresión sean del mismo tipo
+        String tipoExp = e.getTipoDato();
+            if (!t.equals(tipoExp)) {
+                errorSemantico(
+                    "Asignación incompatible en variable global '" + i +
+                    "': " + t + " = " + tipoExp
+                );
+            }
         //Árbol sintáctico
-		    Nodo declaracionG = new Nodo("Declaración global con asignación: " + t + " " + i );
+            Nodo declaracionG = new Nodo("Declaración global con asignación: " + t + " " + i );
 		    Nodo assign = new Nodo("=", TipoNodo.ASIGNACION);
 		    assign.agregarHijo(new Nodo(i.toString(), TipoNodo.VARIABLE));
 		    assign.agregarHijo(e);
@@ -327,6 +406,8 @@ funcion ::= GIFT tipo:t ID:i
     {:
         entrarFuncion();
         agregarFuncion(i,t);
+        funcionActual = i;
+        tipoFuncionActual = t;
     :}
     LPAREN parametros:p RPAREN bloque:b
     {:
@@ -337,7 +418,10 @@ funcion ::= GIFT tipo:t ID:i
         //Nodo padre
         Nodo funcion = new Nodo("Función");
         funcion.agregarHijo(nombreFuncion);
+
         scopeActual = raizScope.get(scopeActual);
+        funcionActual = null;
+        tipoFuncionActual = null;
         RESULT = funcion;
     :}
     | error RBRACE {:
@@ -346,24 +430,31 @@ funcion ::= GIFT tipo:t ID:i
           :}
 ;
 
-funcionMain ::= COAL NAVIDAD LPAREN RPAREN
-    {:
-        entrarFuncion();
-        agregarFuncion("navidad","coal");
 
-    :}
-    bloque:b
-    {:
-        Nodo funcionMain = new Nodo("Función Main");
-        funcionMain.agregarHijo(b);
-        scopeActual = raizScope.get(scopeActual);
-        RESULT = funcionMain;
-    :}
-    | error {:
-            parser.errorDetectado = true;
-            RESULT = new Nodo(">>> ERROR CRÍTICO EN FUNCIÓN MAIN <<<");
-        :};
+funcionMain ::=
+      COAL NAVIDAD LPAREN RPAREN
+      {:
+          entrarFuncion();
+          agregarFuncion("navidad","coal");
+          funcionActual = "navidad";
+          tipoFuncionActual = "coal";
+      :}
+      bloque:b
+      {:
+          Nodo funcionMain = new Nodo("Función Main");
+          funcionMain.agregarHijo(b);
 
+          scopeActual = raizScope.get(scopeActual);
+          funcionActual = null;
+          tipoFuncionActual = null;
+          RESULT = funcionMain;
+      :}
+    | error
+      {:
+          parser.errorDetectado = true;
+          RESULT = new Nodo(">>> ERROR CRÍTICO EN FUNCIÓN MAIN <<<");
+      :}
+;
 
 parametros ::= {:
     RESULT = new Nodo("Lista de parámetros vacía");
@@ -372,14 +463,17 @@ parametros ::= {:
     RESULT = lp;
 :};
 
+
 listaParametros ::= tipo:t ID:i {:
     agregarSimbolo(i, t);
+    datosFunciones.get(funcionActual).add(t);
     Nodo contenedor = new Nodo("Parámetros", TipoNodo.PARAMETROS);
     contenedor.agregarHijo(new Nodo(i));
     RESULT = contenedor;
 :}
 | listaParametros:lp COMMA tipo:t ID:i {:
     agregarSimbolo(i, t);
+    datosFunciones.get(funcionActual).add(t);
     lp.agregarHijo(new Nodo(i));
     RESULT = lp;
 :}
@@ -412,8 +506,18 @@ sentencia ::= ID:i ASSIGN expresion:e ENDL
               {:
                 Nodo n = new Nodo("Asignación " + i);
                 n.agregarHijo(e);
+               String tipoVar = getTipo(i);
+               String tipoExp = e.getTipoDato();
+
+               if (tipoVar.equals("null")) {
+                errorSemantico("Variable '" + i + "' no declarada");
+              }
+              else if (!tipoVar.equals(tipoExp)) {
+                errorSemantico("Diferentes tipos: " + tipoVar + " = " + tipoExp);
+              }
+
                 RESULT = n;
-              :}
+               :}
              | ID:i LBRACKET expresion:e1 RBRACKET
                   LBRACKET expresion:e2 RBRACKET
                   ASSIGN expresion:e3 ENDL
@@ -474,7 +578,6 @@ declaracionVariable ::=
       tipo:t ID:i ENDL
       {:
           agregarSimbolo(i, t);
-
           Nodo identificador = new Nodo(i);
           Nodo tipo = new Nodo(t, TipoNodo.TIPO);
           Nodo declaracionLocal = new Nodo("Declaración de variable sin asignación");
@@ -483,18 +586,19 @@ declaracionVariable ::=
           tipo.agregarHijo(identificador);
           declaracionLocal.agregarHijo(tipo);
           RESULT = declaracionLocal;
-
       :}
       | tipo:t ID:i ASSIGN expresion:e ENDL
         {:
             agregarSimbolo(i, t);
             Nodo declaracionLocal = new Nodo("Declaración de variable con asignación: " + t + " " + i );
+            if (!t.equals(e.getTipoDato())) {
+                errorSemantico("Tipo incompatible en declaración: " + t + " = " + e.getTipoDato());
+            }
             Nodo assign = new Nodo("=", TipoNodo.ASIGNACION);
             assign.agregarHijo(new Nodo(i.toString(), TipoNodo.VARIABLE));
             assign.agregarHijo(e);
             declaracionLocal.agregarHijo(assign);
             RESULT = declaracionLocal;
-
         :}
       | ID ENDL
                    {:
@@ -508,63 +612,119 @@ declaracionArreglo ::= tipo:t ID:i LBRACKET INT_LITERAL:e RBRACKET LBRACKET INT_
                          agregarSimbolo(i, t + "[ ][ ]");
                         RESULT = new Nodo("Declaración arreglo bidimensional: " + i + " " + t + "[" + e.toString() + "][" + e2.toString() +"]");
 :}
-   | tipo:t ID:i LBRACKET INT_LITERAL:e RBRACKET LBRACKET INT_LITERAL:e2 RBRACKET ASSIGN arregloAsignacion:a ENDL {:
+   | tipo:t ID:i LBRACKET INT_LITERAL:filas RBRACKET LBRACKET INT_LITERAL:cols RBRACKET ASSIGN arregloAsignacion:a ENDL {:
       agregarSimbolo(i, t + "[ ][ ]");
-      Nodo n = new Nodo("Declaración de arreglo con asignación " + i + " " + t + "[" + e.toString() + "][" + e2.toString() +"]");
+      Nodo n = new Nodo("Declaración de arreglo con asignación " + i + " " + t + "[" + filas.toString() + "][" + cols.toString() +"]");
+      int filasDecl = Integer.parseInt(filas.toString());
+          int colsDecl  = Integer.parseInt(cols.toString());
+
+          int filasAsig = a.getHijos().get(0).getHijos().size(); // listaFilas
+          int colsAsig  = ((Nodo)a.getHijos().get(0).getHijos().get(0)).getValor();
+
+          if (!t.equals(a.getTipoDato())) {
+              errorSemantico("El tipo del arreglo (" + t + ") no coincide con los valores asignados");
+          }
+
+          if (filasDecl != filasAsig) {
+              errorSemantico("Cantidad de filas declaradas (" + filasDecl +
+                             ") no coincide con las asignadas (" + filasAsig + ")");
+          }
+
+          if (colsDecl != colsAsig) {
+              errorSemantico("Cantidad de columnas declaradas (" + colsDecl +
+                             ") no coincide con las asignadas (" + colsAsig + ")");
+          }
       n.agregarHijo(a);
       RESULT = n;
 :}
 ;
 
 arregloAsignacion ::= LBRACE listaFilas:lf RBRACE {:
-                        Nodo n = new Nodo("Valores Arreglo");
-                        n.agregarHijo(lf);
-                        RESULT = n;
-                    :}
-;
+    Nodo n = new Nodo("Valores Arreglo");
+    n.setTipoDato(lf.getTipoDato());
+    n.agregarHijo(lf);
+    RESULT = n;
+:};
+
 
 listaFilas ::= fila:f {:
-                Nodo n = new Nodo("Lista de Filas");
-                n.agregarHijo(f);
-                RESULT = n;
-              :}
-             | listaFilas:lf COMMA fila:f {:
-                lf.agregarHijo(f);
-                RESULT = lf;
-              :}
-;
+    Nodo n = new Nodo("Lista de Filas");
+    n.setTipoDato(f.getTipoDato());
+    n.setValor(f.getValor()); // columnas esperadas
+    n.agregarHijo(f);
+    RESULT = n;
+:}
+| listaFilas:lf COMMA fila:f {:
+    if (!lf.getTipoDato().equals(f.getTipoDato())) {
+        errorSemantico("Todas las filas del arreglo deben ser del mismo tipo");
+        lf.setTipoDato("error");
+    }
+    if (!lf.getValor().equals(f.getValor())) {
+        errorSemantico("Todas las filas del arreglo deben tener la misma cantidad de columnas");
+    }
+    lf.agregarHijo(f);
+    RESULT = lf;
+:};
 
 fila ::= LBRACE listaValores:lv RBRACE {:
-            Nodo n = new Nodo("Fila");
-            n.agregarHijo(lv);
-            RESULT = n;
-         :}
-;
+    Nodo n = new Nodo("Fila");
+    n.setTipoDato(lv.getTipoDato());
+    n.setValor(lv.getHijos().size()); // número de columnas
+    n.agregarHijo(lv);
+    RESULT = n;
+:};
 
 listaValores ::= valoresArreglo:v {:
-                    Nodo n = new Nodo("Lista de Valores");
-                    n.agregarHijo(v);
-                    RESULT = n;
-                 :}
-               | listaValores:lv COMMA valoresArreglo:v {:
-                    lv.agregarHijo(v);
-                    RESULT = lv;
-                 :}
-;
+    Nodo n = new Nodo("Lista de Valores");
+    n.setTipoDato(v.getTipoDato());
+    n.agregarHijo(v);
+    RESULT = n;
+:}
+| listaValores:lv COMMA valoresArreglo:v {:
+    if (!lv.getTipoDato().equals(v.getTipoDato())) {
+        errorSemantico("Todos los valores de una fila deben ser del mismo tipo");
+        lv.setTipoDato("error");
+    }
+    lv.agregarHijo(v);
+    RESULT = lv;
+:};
 
-valoresArreglo ::= INT_LITERAL:i  {: RESULT = new Nodo(i.toString()); :}
-                 | CHAR_LITERAL:c {: RESULT = new Nodo(c.toString()); :}
-;
+valoresArreglo ::= INT_LITERAL:i  {:
+    Nodo n = new Nodo(i.toString());
+    n.setTipoDato("int");
+    RESULT = n;
+:}
+| CHAR_LITERAL:c {:
+    Nodo n = new Nodo(c.toString());
+    n.setTipoDato("char");
+    RESULT = n;
+:};
+
 
 sentenciaMostrar ::= SHOW expresion:e ENDL {:
-                        Nodo n = new Nodo("Sentencia Show", TipoNodo.SHOW);
-                        n.agregarHijo(e);
-                        RESULT = n;
-                    :}
+    String t = e.getTipoDato();
+    Nodo n = new Nodo("Sentencia Show", TipoNodo.SHOW);
+    if (!(t.equals("int") || t.equals("float") ||
+          t.equals("bool") || t.equals("string") || t.equals("char"))) {
+        errorSemantico("SHOW no permite tipo " + t);
+    }
+    n.agregarHijo(e);
+    RESULT = n;
+:}
 ;
 
-sentenciaLeer ::= GET ID ENDL {: RESULT = new Nodo("Sentencia Get"); :}
-;
+sentenciaLeer ::= GET ID:i ENDL {:
+    String t = getTipo(i);
+    Nodo n= new Nodo("Sentencia Get");
+    if (t.equals("null")) {
+        errorSemantico("Variable '" + i + "' no declarada");
+    }
+    else if (!t.equals("int") && !t.equals("float")) {
+        errorSemantico("GET solo permite variables int o float, no " + t);
+    }
+
+    RESULT = n;
+:};
 
 sentenciaDecide ::= DECIDE OF {:
                   entrarBloque("decide");:}
@@ -613,11 +773,14 @@ casoElse ::= {: RESULT = new Nodo("Sin caso Else", TipoNodo.NO_ELSE); :}
 ;
 
 sentenciaLoop ::= LOOP {:
-                entrarBloque("loop");:}
+                entrarBloque("loop");
+                nivelCiclo++;
+                :}
                 listaSentencias:ls salidaLoop:sl END LOOP ENDL {:
                     Nodo n = new Nodo("LOOP", TipoNodo.LOOP);
                     n.agregarHijo(ls);
                     n.agregarHijo(sl);
+                    nivelCiclo--;
                     salirBloque();
                     RESULT = n;
                   :}
@@ -625,6 +788,9 @@ sentenciaLoop ::= LOOP {:
 
 salidaLoop ::= EXIT WHEN expresion:e ENDL {:
                 Nodo n = new Nodo("Salida Loop");
+                if (!e.getTipoDato().equals("bool")) {
+                    errorSemantico("La condición del EXIT WHEN debe ser booleana, no " +e.getTipoDato());
+                }
                 n.agregarHijo(e);
                 RESULT = n;
               :}
@@ -635,14 +801,17 @@ salidaLoop ::= EXIT WHEN expresion:e ENDL {:
 ;
 
 sentenciaFor ::= FOR LPAREN {:
-               entrarBloque("for");:}
-               forIniciar:fi ENDL expresion:e ENDL forActualizar:fa RPAREN bloque:b {:
+               entrarBloque("for");
+               nivelCiclo++;
+               :}
 
+               forIniciar:fi ENDL expresion:e ENDL forActualizar:fa RPAREN bloque:b {:
                Nodo n = new Nodo("FOR", TipoNodo.FOR);
                n.agregarHijo(fi);
                n.agregarHijo(e);
                n.agregarHijo(fa);
                n.agregarHijo(b);
+               nivelCiclo--;
                salirBloque();
                RESULT = n;
 :}
@@ -660,19 +829,20 @@ forIniciar ::= tipo:t ID:i ASSIGN expresion:e
           asignacion.agregarHijo(e);
 
           n.agregarHijo(asignacion);
+
           RESULT = n;
       :}
-    | ID:i ASSIGN expresion:e
+    | ID ASSIGN expresion:e
       {:
-          Nodo n = new Nodo("Valor inicial del for");
-          Nodo asignacion = new Nodo("=", TipoNodo.ASIGNACION);
-          Nodo identificador = new Nodo(i.toString());
+            Nodo n = new Nodo("Valor inicial del for");
+            Nodo asignacion = new Nodo("=", TipoNodo.ASIGNACION);
+            Nodo identificador = new Nodo(i.toString());
 
-          asignacion.agregarHijo(identificador);
-          asignacion.agregarHijo(e);
+            asignacion.agregarHijo(identificador);
+            asignacion.agregarHijo(e);
 
-          n.agregarHijo(asignacion);
-          RESULT = n;
+            n.agregarHijo(asignacion);
+            RESULT = n;
       :}
 ;
 
@@ -705,17 +875,56 @@ forActualizar ::=  INC ID:i
 ;
 
 sentenciaReturn ::= RETURN expresion:e ENDL {:
-                        Nodo n = new Nodo("Sentencia Return");
-                        n.agregarHijo(e);
-                        RESULT = n;
-                    :}
+    Nodo n = new Nodo("Sentencia Return");
+
+    if (tipoFuncionActual == null) {
+        errorSemantico("Return fuera de una función");
+    }
+    else if (tipoFuncionActual.equals("coal")) {
+        errorSemantico("La función main (coal) no puede retornar un valor");
+    }
+    else if (!e.getTipoDato().equals(tipoFuncionActual)) {
+        errorSemantico("Return inválido: se esperaba " + tipoFuncionActual + " y se obtuvo " + e.getTipoDato());
+    }
+    n.agregarHijo(e);
+    RESULT = n;
+:}
 ;
 
-sentenciaBreak ::= BREAK ENDL {: RESULT = new Nodo("Sentencia Break"); :}
+sentenciaBreak ::= BREAK ENDL {:
+    Nodo n= new Nodo("Sentencia Break");
+    if (nivelCiclo == 0) {
+        errorSemantico("Break fuera de un ciclo");
+    }
+    RESULT = n;
+:}
 ;
 
-llamadaFuncion ::= ID LPAREN argumentos:a RPAREN {:
+
+llamadaFuncion ::= ID:i LPAREN argumentos:a RPAREN {:
                     Nodo n = new Nodo("Llamada a Función");
+                    if (!datosFunciones.containsKey(i)) {
+                        errorSemantico("Función '" + i + "' no declarada");
+                        n.setTipoDato("error");
+                    } else {
+                        ArrayList<String> datos = datosFunciones.get(i);
+                        int esperados = datos.size() - 1;
+                        int recibidos = a.getHijos().size();
+
+                        if (esperados != recibidos) {
+                            errorSemantico("Cantidad de argumentos incorrecta en '" + i +"': esperados " + esperados + ", recibidos " + recibidos);
+                            n.setTipoDato("error");
+                        } else {
+                            for (int j = 0; j < recibidos; j++) {
+                                String tArg = a.getHijos().get(j).getTipoDato();
+                                String tEsp = datos.get(j + 1);
+                                    if (!tArg.equals(tEsp)) {
+                                        errorSemantico("Argumento " + (j+1) + " en '" + i + "' esperado " + tEsp + ", recibido " + tArg);
+                                    }
+                            }
+                            n.setTipoDato(datos.get(0)); // tipo retorno
+                          }
+                     }
                     n.agregarHijo(a);
                     RESULT = n;
                   :}
@@ -740,40 +949,122 @@ expresion ::= expresion:e OR terminoLogico:t {:
                         Nodo n = new Nodo("OR", TipoNodo.OPERADOR);
                         n.agregarHijo(e);
                         n.agregarHijo(t);
-                        RESULT = n;
-                    :}
-                  | terminoLogico:t {:
-                  RESULT = t; :}
+                        String t1 = e.getTipoDato();
+                        String t2 = t.getTipoDato();
+
+                        if (!t1.equals("bool")) {
+                            errorSemantico("Operando izquierdo no booleano: " + t1);
+                            n.setTipoDato("error");
+                        }
+                        else if (!t2.equals("bool")) {
+                            errorSemantico("Operando derecho no booleano: " + t2);
+                            n.setTipoDato("error");
+                        }
+                        else {
+                            n.setTipoDato("bool");
+                        }
+
+                            RESULT = n;
+                        :}
+                        | terminoLogico:t {:
+                            RESULT = t;
+                        :}
 ;
 
 terminoLogico ::= terminoLogico:t AND factorLogico:f {:
-                    Nodo n = new Nodo("AND", TipoNodo.OPERADOR);
+                    Nodo n = new Nodo("Término Lógico (AND)");
                     n.agregarHijo(t);
                     n.agregarHijo(f);
+                    String t1 = t.getTipoDato();
+                    String t2 = f.getTipoDato();
+
+                    if (!t1.equals("bool")) {
+                        errorSemantico("Operando izquierdo no booleano en AND: " + t1);
+                        n.setTipoDato("error");
+                    }
+                    else if (!t2.equals("bool")) {
+                        errorSemantico("Operando derecho no booleano en AND: " + t2);
+                        n.setTipoDato("error");
+                    }
+                    else {
+                        n.setTipoDato("bool");
+                    }
+
                     RESULT = n;
-                  :}
-                | factorLogico:f {:
-                    RESULT = f; :}
-;
+                    :}
+                    | factorLogico:f {:
+                        RESULT = f;
+                    :}
+                    ;
 
 factorLogico ::= NOT factorLogico:f {:
-                    Nodo n = new Nodo("Negación Lógica", TipoNodo.NEGACION);
-                    n.agregarHijo(f);
+                   Nodo n = new Nodo("Negación Lógica");
+                   n.agregarHijo(f);
+                   String t = f.getTipoDato();
+
+                   if (!t.equals("bool")) {
+                    errorSemantico("Operando no booleano en NOT: " + t);
+                    n.setTipoDato("error");
+                   }
+                   else {
+                    n.setTipoDato("bool");
+                   }
+
                     RESULT = n;
-                 :}
-               | expresionRelacional:e {:
-                   RESULT = e; :}
-;
+                   :}
+                   | expresionRelacional:e {:
+                       RESULT = e;
+                   :}
+                   ;
 
 expresionRelacional ::= expresionAritmetica:e1 operadorRelacional:o expresionAritmetica:e2 {:
-                            Nodo n = new Nodo("Expresión Relacional");
-                            o.agregarHijo(e1); //agregar al operador relacional su argumento izquierdo
-                            o.agregarHijo(e2); //agregar al operador relacional su argumento derecho
-                            n.agregarHijo(o);
-                            RESULT = n;
-                        :}
-                      | expresionAritmetica:e {:
-                            RESULT = e; :}
+    Nodo n = new Nodo("Expresión Relacional");
+    o.agregarHijo(e1); //agregar al operador relacional su argumento izquierdo
+    o.agregarHijo(e2); //agregar al operador relacional su argumento derecho
+    n.agregarHijo(o);
+
+    String t1 = e1.getTipoDato();
+    String t2 = e2.getTipoDato();
+    String op = o.getName();
+
+    if (op.equals("<") || op.equals("<=") || op.equals(">") || op.equals(">=")) {
+
+        if (!esNumerico(t1)) {
+            errorSemantico("Operando izquierdo no numérico: " + t1);
+            n.setTipoDato("error");
+        }
+        else if (!esNumerico(t2)) {
+            errorSemantico("Operando derecho no numérico: " + t2);
+            n.setTipoDato("error");
+        }
+        else if (!t1.equals(t2)) {
+            errorSemantico("Operandos de distinto tipo: " + t1 + " y " + t2);
+            n.setTipoDato("error");
+        }
+        else {
+            n.setTipoDato("bool");
+        }
+    }
+
+    else if (op.equals("==") || op.equals("!=")) {
+
+        if (!t1.equals(t2)) {
+            errorSemantico(
+                "Comparación de igualdad entre tipos incompatibles: " +
+                t1 + " y " + t2
+            );
+            n.setTipoDato("error");
+        }
+        else {
+            n.setTipoDato("bool");
+        }
+    }
+
+    RESULT = n;
+:}
+| expresionAritmetica:e {:
+    RESULT = e;
+:}
 ;
 
 operadorRelacional ::=
@@ -786,75 +1077,308 @@ operadorRelacional ::=
 ;
 
 expresionAritmetica ::= expresionAritmetica:e PLUS termino:t {:
-                            Nodo n = new Nodo("+", TipoNodo.OPERADOR);
-                            n.agregarHijo(e);
-                            n.agregarHijo(t);
-                            RESULT = n;
-                        :}
-                      | expresionAritmetica:e MINUS termino:t {:
-                            Nodo n = new Nodo("-", TipoNodo.OPERADOR);
-                            n.agregarHijo(e);
-                            n.agregarHijo(t);
-                            RESULT = n;
-                        :}
-                      | termino:t {: RESULT = t; :}
+    Nodo n = new Nodo("+", TipoNodo.OPERADOR);
+    n.agregarHijo(e);
+    n.agregarHijo(t);
+
+    String t1 = e.getTipoDato();
+    String t2 = t.getTipoDato();
+
+    if (!esNumerico(t1)) {
+        errorSemantico("Operando izquierdo no es numérico  : " + t1);
+        n.setTipoDato("error");
+    }
+    else if (!esNumerico(t2)) {
+        errorSemantico("Operando derecho no es numérico  : " + t2);
+        n.setTipoDato("error");
+    }
+    else if (!t1.equals(t2)) {
+        errorSemantico("Operandos de distinto tipo  : " + t1 + " y " + t2);
+        n.setTipoDato("error");
+    }
+    else if (t1.equals("string") || t2.equals("string")) {
+            errorSemantico("No se permiten operaciones aritméticas con string");
+            n.setTipoDato("error");
+    }
+    else {
+        n.setTipoDato(t1);
+    }
+
+    RESULT = n;
+:}
+| expresionAritmetica:e MINUS termino:t {:
+    Nodo n = new Nodo("-", TipoNodo.OPERADOR);
+    n.agregarHijo(e);
+    n.agregarHijo(t);
+
+    String t1 = e.getTipoDato();
+    String t2 = t.getTipoDato();
+
+    if (!esNumerico(t1)) {
+        errorSemantico("Operando izquierdo no es numérico  : " + t1);
+        n.setTipoDato("error");
+    }
+    else if (!esNumerico(t2)) {
+        errorSemantico("Operando derecho no es numérico  : " + t2);
+        n.setTipoDato("error");
+    }
+    else if (!t1.equals(t2)) {
+        errorSemantico("Operandos de distinto tipo  : " + t1 + " y " + t2);
+        n.setTipoDato("error");
+    }
+    else if (t1.equals("string") || t2.equals("string")) {
+            errorSemantico("No se permiten operaciones aritméticas con string");
+            n.setTipoDato("error");
+    }
+    else {
+        n.setTipoDato(t1);
+    }
+
+    RESULT = n;
+:}
+| termino:t {: RESULT = t; :}
 ;
 
-termino ::= termino:t MULT factor:f {:
+termino ::= termino:t MULT factor:f
+            {:
                 Nodo n = new Nodo("*", TipoNodo.OPERADOR);
                 n.agregarHijo(t);
                 n.agregarHijo(f);
+
+                String t1 = t.getTipoDato();
+                String t2 = f.getTipoDato();
+
+                // Operando izquierdo no es int ni float
+                if (!esNumerico(t1)) {
+                    errorSemantico("Operando izquierdo no es númerico: " + t1);
+                    n.setTipoDato("error");
+                }
+                // Operando izquierdo no es int ni float
+                else if (!esNumerico(t2)) {
+                    errorSemantico("Operando derecho no es númerico : " + t2);
+                    n.setTipoDato("error");
+                }
+                // Ambos operandos son numéricos pero tipos distintos
+                else if (!t1.equals(t2)) {
+                    errorSemantico(
+                        "Operandos de diferente tipo : " + t1 + " y " + t2
+                    );
+                    n.setTipoDato("error");
+                }
+                else if (t1.equals("string") || t2.equals("string")) {
+                        errorSemantico("No se permiten operaciones aritméticas con string");
+                        n.setTipoDato("error");
+                }
+                else {
+                    n.setTipoDato(t1);
+                }
+
                 RESULT = n;
             :}
           | termino:t DIV factor:f {:
-                Nodo n = new Nodo("/", TipoNodo.OPERADOR);
-                n.agregarHijo(t);
-                n.agregarHijo(f);
-                RESULT = n;
-            :}
+              Nodo n = new Nodo("/", TipoNodo.OPERADOR);
+              n.agregarHijo(t);
+              n.agregarHijo(f);
+
+              String t1 = t.getTipoDato();
+              String t2 = f.getTipoDato();
+
+              if (!esNumerico(t1)) {
+                  errorSemantico("Operando izquierdo no es numérico: " + t1);
+                  n.setTipoDato("error");
+              }
+              else if (!esNumerico(t2)) {
+                  errorSemantico("Operando derecho no es numérico : " + t2);
+                  n.setTipoDato("error");
+              }
+              else if (!t1.equals(t2)) {
+                  errorSemantico("Operandos de distinto tipo: " + t1 + " y " + t2);
+                  n.setTipoDato("error");
+              }
+              else if (t1.equals("string") || t2.equals("string")) {
+                      errorSemantico("No se permiten operaciones aritméticas con string");
+                      n.setTipoDato("error");
+              }
+              else {
+                  n.setTipoDato(t1);
+              }
+
+              RESULT = n;
+          :}
           | termino:t DIVENT factor:f {:
-                Nodo n = new Nodo("//", TipoNodo.OPERADOR);
-                n.agregarHijo(t);
-                n.agregarHijo(f);
-                RESULT = n;
-            :}
-          | termino:t MOD factor:f {:
-                Nodo n = new Nodo("%", TipoNodo.OPERADOR);
-                n.agregarHijo(t);
-                n.agregarHijo(f);
-                RESULT = n;
-            :}
+              Nodo n = new Nodo("//", TipoNodo.OPERADOR);
+              n.agregarHijo(t);
+              n.agregarHijo(f);
+
+              String t1 = t.getTipoDato();
+              String t2 = f.getTipoDato();
+
+              if (!t1.equals("int")) {
+                  errorSemantico("Operando izquierdo no es int en // : " + t1);
+                  n.setTipoDato("error");
+              }
+              else if (!t2.equals("int")) {
+                  errorSemantico("Operando derecho no es int en // : " + t2);
+                  n.setTipoDato("error");
+              }
+              else if (t1.equals("string") || t2.equals("string")) {
+                      errorSemantico("No se permiten operaciones aritméticas con string");
+                      n.setTipoDato("error");
+              }
+              else {
+                  n.setTipoDato("int");
+              }
+
+              RESULT = n;
+          :}
+         | termino:t MOD factor:f {:
+             Nodo n = new Nodo("%", TipoNodo.OPERADOR);
+             n.agregarHijo(t);
+             n.agregarHijo(f);
+
+             String t1 = t.getTipoDato();
+             String t2 = f.getTipoDato();
+
+             if (!t1.equals("int")) {
+                 errorSemantico("Operando izquierdo no es int en % : " + t1);
+                 n.setTipoDato("error");
+             }
+             else if (!t2.equals("int")) {
+                 errorSemantico("Operando derecho no es int en % : " + t2);
+                 n.setTipoDato("error");
+             }
+             else if (t1.equals("string") || t2.equals("string")) {
+                     errorSemantico("No se permiten operaciones aritméticas con string");
+                     n.setTipoDato("error");
+             }
+             else {
+                 n.setTipoDato("int");
+             }
+
+             RESULT = n;
+         :}
           | factor:f {: RESULT = f; :}
 ;
 
+
+
 factor ::= factor:f ELEV primario:p {:
-            Nodo n = new Nodo("^", TipoNodo.OPERADOR);
-            n.agregarHijo(f);
-            n.agregarHijo(p);
-            RESULT = n;
-          :}
-         | primario:p {: RESULT = p; :}
+    Nodo n = new Nodo("^", TipoNodo.OPERADOR);
+    n.agregarHijo(f);
+    n.agregarHijo(p);
+
+    String t1 = f.getTipoDato();
+    String t2 = p.getTipoDato();
+
+    if (!esNumerico(t1)) {
+        errorSemantico("Operando izquierdo no es numérico en ^ : " + t1);
+        n.setTipoDato("error");
+    }
+    else if (!esNumerico(t2)) {
+        errorSemantico("Operando derecho no es numérico en ^ : " + t2);
+        n.setTipoDato("error");
+    }
+    else if (!t1.equals(t2)) {
+        errorSemantico("Operandos de distinto tipo en ^ : " + t1 + " y " + t2);
+        n.setTipoDato("error");
+    }
+    else if (t1.equals("string") || t2.equals("string")) {
+        errorSemantico("No se permiten operaciones aritméticas con string");
+        n.setTipoDato("error");
+    }
+
+    else {
+        n.setTipoDato(t1); // int^int → int, float^float → float
+    }
+
+    RESULT = n;
+:}
+| primario:p {: RESULT = p; :}
 ;
 
 
-primario ::= ID:v {: RESULT = new Nodo(v.toString(), TipoNodo.VARIABLE); :}
+primario ::= ID:v {:
+     Nodo n = new Nodo(v, TipoNodo.VARIABLE);
+        String tipo = getTipo(v);
+
+        if (tipo.equals("null")) {
+            errorSemantico("Variable '" + v + "' no declarada");
+            n.setTipoDato("error");
+        } else {
+            n.setTipoDato(tipo);
+        }
+
+        RESULT = n;
+    :}
            | literal:l {: RESULT = l; :}
            | llamadaFuncion:lf {: RESULT = lf; :}
-           | ID LBRACKET expresion:e1 RBRACKET LBRACKET expresion:e2 RBRACKET {:
-                Nodo n = new Nodo("Acceso Arreglo");
-                n.agregarHijo(e1);
-                n.agregarHijo(e2);
-                RESULT = n;
-             :}
+           | ID:i LBRACKET expresion:e1 RBRACKET LBRACKET expresion:e2 RBRACKET {:
+               Nodo n = new Nodo("Acceso Arreglo");
+
+               if (!e1.getTipoDato().equals("int") || !e2.getTipoDato().equals("int")) {
+                   errorSemantico("Índices de arreglo deben ser int");
+                   n.setTipoDato("error");
+               } else {
+                   String tipoArr = getTipo(i);
+                   if (tipoArr.contains("[ ][ ]")) {
+                       n.setTipoDato(tipoArr.replace("[ ][ ]", ""));
+                   } else {
+                       errorSemantico("Variable '" + i + "' no es un arreglo");
+                       n.setTipoDato("error");
+                   }
+               }
+
+               n.agregarHijo(e1);
+               n.agregarHijo(e2);
+               RESULT = n;
+           :}
+
            | LPAREN expresion:e RPAREN {: RESULT = e; :}
 ;
 
+
+
 literal ::=
-      MINUS INT_LITERAL:v {: RESULT = new Nodo("-" + v, TipoNodo.CONSTANTE); :}
-    | MINUS FLOAT_LITERAL:v {: RESULT = new Nodo("-" + v, TipoNodo.CONSTANTE); :}
-    | INT_LITERAL:v    {: RESULT = new Nodo(v.toString(), TipoNodo.CONSTANTE); :}
-    | FLOAT_LITERAL:v  {: RESULT = new Nodo(v.toString(), TipoNodo.CONSTANTE); :}
-    | STRING_LITERAL:v {: RESULT = new Nodo("\""+v.toString()+"\"", TipoNodo.CONSTANTE); :}
-    | CHAR_LITERAL:v   {: RESULT = new Nodo("\'"+v.toString()+"\'", TipoNodo.CONSTANTE); :}
-    | BOOL_LITERAL:v   {: RESULT = new Nodo(v.toString(), TipoNodo.CONSTANTE); :}
+     MINUS INT_LITERAL:v
+    {:
+        Nodo n = new Nodo("-" + v, TipoNodo.CONSTANTE);
+        n.setTipoDato("int");
+        RESULT = n;
+    :}
+    | MINUS FLOAT_LITERAL:v
+    {:
+        Nodo n = new Nodo("-" + v, TipoNodo.CONSTANTE);
+        n.setTipoDato("float");
+        RESULT = n;
+    :}
+
+    | INT_LITERAL:v
+        {:
+           Nodo n = new Nodo(v.toString(), TipoNodo.CONSTANTE);
+           n.setTipoDato("int");
+           RESULT = n;
+        :}
+    | FLOAT_LITERAL:v
+        {:
+           Nodo n = new Nodo(v.toString(), TipoNodo.CONSTANTE);
+           n.setTipoDato("float");
+           RESULT = n;
+        :}
+    | STRING_LITERAL:v
+        {:
+           Nodo n = new Nodo("\""+v.toString()+"\"", TipoNodo.CONSTANTE);
+           n.setTipoDato("string");
+           RESULT = n;
+        :}
+    | BOOL_LITERAL:v
+        {:
+           Nodo n = new Nodo(v.toString(), TipoNodo.CONSTANTE);
+           n.setTipoDato("bool");
+           RESULT = n;
+        :}
+   | CHAR_LITERAL:v {:
+        Nodo n = new Nodo("\'"+v.toString()+"\'", TipoNodo.CONSTANTE);
+        n.setTipoDato("char");
+        RESULT = n;
+    :}
 ;
