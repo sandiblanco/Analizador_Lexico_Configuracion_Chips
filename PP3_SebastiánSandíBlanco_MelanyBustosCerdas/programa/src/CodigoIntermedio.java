@@ -1,3 +1,11 @@
+/**
+ CURSO: Compiladores e Intérpretes
+ PROYECTO #3
+ ESTUDIANTES: Sebastián Sandí Blanco y Melany Bustos Cerdas
+ ARCHIVO: CodigoIntermedio.java
+
+ Clase responsable de convertir todas las instrucciones del código fuente a código intermedio
+ */
 package src;
 
 import java.util.ArrayList;

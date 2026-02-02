@@ -23,10 +23,9 @@ public class InstruccionIntermedia {
         resultado = result;
     }
 
-
-     //Imprime la instrucción en formato de código intermedio dependiendo del tipo de nodo
+    //Imprime la instrucción en formato de código intermedio dependiendo del tipo de nodo
     public void imprimir(){
-        
+
         String lineaDeCodigo = "";
 
         switch (this.operador){
@@ -57,7 +56,7 @@ public class InstruccionIntermedia {
             case "!=":
             case "AND":
             case "OR":
-                lineaDeCodigo = resultado + " = " + argumento1 + operador + argumento2;
+                lineaDeCodigo = resultado + " = " + argumento1 + " " + operador + " " + argumento2;
                 break;
 
             //cuando se recibe una función
@@ -73,6 +72,7 @@ public class InstruccionIntermedia {
             case "FIN DE MAIN":
                 lineaDeCodigo = "_func_end:";
                 break;
+
             //Parámetro
             case "PARÁMETRO":
                 lineaDeCodigo = resultado + " = " + "param[" + argumento1 + "]";
@@ -124,7 +124,6 @@ public class InstruccionIntermedia {
                 lineaDeCodigo = resultado + ":";
                 break;
 
-
             //DECLARACIONES
             case "ENTERO":
                 lineaDeCodigo = "dataInt " + resultado + " default 0";
@@ -139,11 +138,11 @@ public class InstruccionIntermedia {
                 break;
 
             case "BOOLEANO":
-                lineaDeCodigo = "dataBool " + resultado + " default true";
+                lineaDeCodigo = "dataBool " + resultado + " default false";
                 break;
 
             case "STRING":
-                lineaDeCodigo = "dataString " + resultado + " default null";
+                lineaDeCodigo = "dataString " + resultado + " default \"\"";
                 break;
 
             case "NEGACION":
@@ -153,11 +152,27 @@ public class InstruccionIntermedia {
             case "ERROR":
                 lineaDeCodigo = resultado;
                 break;
+
+            default:
+                lineaDeCodigo = "OPERADOR DESCONOCIDO: " + operador;
+                break;
         }
         System.out.println(lineaDeCodigo);
     }
 
     public String getOperador(){
         return this.operador;
+    }
+
+    public String getArgumento1(){
+        return this.argumento1;
+    }
+
+    public String getArgumento2(){
+        return this.argumento2;
+    }
+
+    public String getResultado(){
+        return this.resultado;
     }
 }
