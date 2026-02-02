@@ -310,7 +310,7 @@ declaracionGlobal ::= WORLD tipo:t ID:i ENDL {:
         :} //Manejo de errores
         | WORLD error ENDL {:
             parser.errorDetectado = true;
-            RESULT = new Nodo(">>> ERROR EN DECLARACIÓN GLOBAL <<<");
+            RESULT = new Nodo(">>> ERROR EN DECLARACIÓN GLOBAL <<<", TipoNodo.ERROR);
         :}
 
 ;
@@ -342,7 +342,7 @@ funcion ::= GIFT tipo:t ID:i
     :}
     | error RBRACE {:
             parser.errorDetectado = true;
-            RESULT = new Nodo(">>> ERROR EN ESTRUCTURA DE FUNCIÓN <<<");
+            RESULT = new Nodo(">>> ERROR EN ESTRUCTURA DE FUNCIÓN <<<", TipoNodo.ERROR);
           :}
 ;
 
@@ -354,14 +354,14 @@ funcionMain ::= COAL NAVIDAD LPAREN RPAREN
     :}
     bloque:b
     {:
-        Nodo funcionMain = new Nodo("Función Main");
+        Nodo funcionMain = new Nodo("Función Main", TipoNodo.MAIN);
         funcionMain.agregarHijo(b);
         scopeActual = raizScope.get(scopeActual);
         RESULT = funcionMain;
     :}
     | error {:
             parser.errorDetectado = true;
-            RESULT = new Nodo(">>> ERROR CRÍTICO EN FUNCIÓN MAIN <<<");
+            RESULT = new Nodo(">>> ERROR CRÍTICO EN FUNCIÓN MAIN <<<", TipoNodo.ERROR);
         :};
 
 
@@ -385,7 +385,7 @@ listaParametros ::= tipo:t ID:i {:
 :}
 | error COMMA tipo ID {:
     parser.errorDetectado = true;
-    RESULT = new Nodo(">>> ERROR: PARÁMETRO NO VÁLIDO <<<");
+    RESULT = new Nodo(">>> ERROR: PARÁMETRO NO VÁLIDO <<<", TipoNodo.ERROR);
 :};
 
 
@@ -433,7 +433,7 @@ sentencia ::= ID:i ASSIGN expresion:e ENDL
               :}
             | error ENDL
                           {:
-                            Nodo errorNodo = new Nodo(">>> ERROR SINTÁCTICO <<< ");
+                            Nodo errorNodo = new Nodo(">>> ERROR EN LA SENTENCIA <<< ", TipoNodo.ERROR);
                             parser.errorDetectado = true;
                             RESULT = errorNodo;
                           :}
@@ -456,7 +456,7 @@ declaracionLocal ::=
     :}
     | LOCAL error
                   {:
-                    Nodo errorNodo = new Nodo(">>> ERROR DECLARANDO VARIABLE LOCAL <<< ");
+                    Nodo errorNodo = new Nodo(">>> ERROR DECLARANDO VARIABLE LOCAL <<< ", TipoNodo.ERROR);
                     parser.errorDetectado = true;
                     RESULT = errorNodo;
                   :}
@@ -498,7 +498,7 @@ declaracionVariable ::=
         :}
       | ID ENDL
                    {:
-                     Nodo errorNodo = new Nodo(">>> ERROR, DEBE ASIGNAR UN TIPO AL IDENTIFICADOR <<< ");
+                     Nodo errorNodo = new Nodo(">>> ERROR, DEBE ASIGNAR UN TIPO AL IDENTIFICADOR <<< ", TipoNodo.ERROR);
                      parser.errorDetectado = true;
                      RESULT = errorNodo;
                    :}
@@ -598,7 +598,7 @@ casoDecide ::= expresion:e ARROW bloque:b {:
               LPAREN error RPAREN ARROW bloque:b
                   {:
                       parser.errorDetectado = true;
-                      Nodo n = new Nodo("CASO (ERROR EN CONDICIÓN)");
+                      Nodo n = new Nodo("CASO (ERROR EN LA CONDICIÓN)", TipoNodo.ERROR);
                       n.agregarHijo(b); // se rescata el cuerpo del bloque
                       RESULT = n;
                   :}
@@ -630,7 +630,7 @@ salidaLoop ::= EXIT WHEN expresion:e ENDL {:
               :}
         | EXIT WHEN error ENDL {:
             parser.errorDetectado = true;
-            RESULT = new Nodo(">>> ERROR EN LA DECLARACIÓN PARA CERRAR EL CICLO <<<");
+            RESULT = new Nodo(">>> ERROR EN LA DECLARACIÓN PARA CERRAR EL CICLO <<<", TipoNodo.ERROR);
         :}
 ;
 
@@ -705,7 +705,7 @@ forActualizar ::=  INC ID:i
 ;
 
 sentenciaReturn ::= RETURN expresion:e ENDL {:
-                        Nodo n = new Nodo("Sentencia Return");
+                        Nodo n = new Nodo("Sentencia Return", TipoNodo.RETURN);
                         n.agregarHijo(e);
                         RESULT = n;
                     :}
@@ -714,9 +714,11 @@ sentenciaReturn ::= RETURN expresion:e ENDL {:
 sentenciaBreak ::= BREAK ENDL {: RESULT = new Nodo("Sentencia Break"); :}
 ;
 
-llamadaFuncion ::= ID LPAREN argumentos:a RPAREN {:
+llamadaFuncion ::= ID:i LPAREN argumentos:a RPAREN {:
                     Nodo n = new Nodo("Llamada a Función");
-                    n.agregarHijo(a);
+                    Nodo nombreFuncion = new Nodo(i.toString(), TipoNodo.LLAMADA_FUNCION);
+                    nombreFuncion.agregarHijo(a);
+                    n.agregarHijo(nombreFuncion);
                     RESULT = n;
                   :}
 ;

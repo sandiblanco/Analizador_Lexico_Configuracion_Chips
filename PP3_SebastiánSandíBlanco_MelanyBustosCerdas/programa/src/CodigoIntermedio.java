@@ -187,6 +187,35 @@ public class CodigoIntermedio {
                     contadorParametro++; //simula crear un nuevo espacio en la pila
                 }
                 contadorParametro = 0; //reiniciar el contador porque es independiente por cada función
+                return "";
+
+            case LLAMADA_FUNCION:
+                //Procesar argumentos (ponerlos en la lista de parámetros)
+                int contadorArgumentos = 0;
+                Nodo listaArgs = nodo.getHijos().get(0);
+                for (Nodo argumento : listaArgs.getHijos()) {
+                    String tempArg = lecturaArbol(argumento);
+                    instrucciones.add(new InstruccionIntermedia("ARGUMENTO", tempArg, "", ""));
+                    contadorArgumentos++;
+                }
+                //Generar el CALL
+                temporal = generarTemporal();
+                instrucciones.add(new InstruccionIntermedia("CALL", ""+contadorArgumentos, "", nodo.getName()));
+                return temporal;
+
+            case RETURN:
+                String valorRetorno = lecturaArbol(nodo.getHijos().getFirst());
+                instrucciones.add(new InstruccionIntermedia("RETURN", valorRetorno, "", ""));
+                return "";
+
+            case MAIN:
+
+                Nodo bloque = nodo.getHijos().getFirst();
+                //_func_begin_main:
+                instrucciones.add(new InstruccionIntermedia("MAIN", "", "", ""));
+                lecturaArbol(bloque);
+                instrucciones.add(new InstruccionIntermedia("FIN DE FUNCIÓN", "", "", ""));
+                return "";
 
             case SHOW:
                 expresion = lecturaArbol(nodo.getHijos().getFirst());
@@ -216,6 +245,9 @@ public class CodigoIntermedio {
                 }
                 return "";
 
+            case ERROR:
+                instruccion = new InstruccionIntermedia("ERROR", "", "", nodo.getName());
+                instrucciones.add(instruccion);
             //VARIABLES Y CONSTANTES: se retornan porque son las hojas
             case VARIABLE:
                 return nodo.getName();

@@ -9,6 +9,8 @@ public enum TipoNodo {
     ASIGNACION,
     PARAMETROS,
     FUNCION,
+    LLAMADA_FUNCION,
+    RETURN,
     TIPO,
     FOR,
     LOOP,
@@ -17,5 +19,7 @@ public enum TipoNodo {
     NO_ELSE,
     CASO_ELSE,
     NEGACION,
-    SHOW
+    SHOW,
+    MAIN,
+    ERROR
 }

@@ -62,7 +62,7 @@ public class InstruccionIntermedia {
 
             //La instrucción final de la función
             case "FIN DE FUNCIÓN":
-                lineaDeCodigo = "func end";
+                lineaDeCodigo = "_func_end";
                 break;
 
             //Parámetro
@@ -70,8 +70,24 @@ public class InstruccionIntermedia {
                 lineaDeCodigo = resultado + " = " + "param[" + argumento1 + "]";
                 break;
 
+            case "CALL":
+                lineaDeCodigo = "call " + resultado + ", " + argumento1; //llamar a funciones
+                break;
+
+            case "ARGUMENTO":
+                lineaDeCodigo = "param " + argumento1; //llamar a funciones
+                break;
+
+            case "RETURN":
+                lineaDeCodigo = "return " + argumento1;
+                break;
+
             case "SHOW":
-                lineaDeCodigo = "print "+resultado;
+                lineaDeCodigo = "print " + resultado;
+                break;
+
+            case "MAIN":
+                lineaDeCodigo = "_func_begin_main:" + resultado;
                 break;
 
             //SENTENCIA FOR
@@ -126,8 +142,14 @@ public class InstruccionIntermedia {
                 lineaDeCodigo = resultado + " = !" + argumento1;
                 break;
 
-
+            case "ERROR":
+                lineaDeCodigo = resultado;
+                break;
         }
         System.out.println(lineaDeCodigo);
+    }
+
+    public String getOperador(){
+        return this.operador;
     }
 }
