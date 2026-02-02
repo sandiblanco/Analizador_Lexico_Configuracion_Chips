@@ -875,7 +875,7 @@ forActualizar ::=  INC ID:i
 ;
 
 sentenciaReturn ::= RETURN expresion:e ENDL {:
-    Nodo n = new Nodo("Sentencia Return");
+    Nodo n = new Nodo("Sentencia Return", TipoNodo.RETURN);
 
     if (tipoFuncionActual == null) {
         errorSemantico("Return fuera de una función");
@@ -902,7 +902,7 @@ sentenciaBreak ::= BREAK ENDL {:
 
 
 llamadaFuncion ::= ID:i LPAREN argumentos:a RPAREN {:
-                    Nodo n = new Nodo("Llamada a Función");
+                    Nodo n = new Nodo("Llamada a Función", TipoNodo.LLAMADA_FUNCION);
                     if (!datosFunciones.containsKey(i)) {
                         errorSemantico("Función '" + i + "' no declarada");
                         n.setTipoDato("error");
