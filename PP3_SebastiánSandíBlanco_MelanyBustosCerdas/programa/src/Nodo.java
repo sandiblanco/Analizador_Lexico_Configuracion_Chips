@@ -1,11 +1,11 @@
 /**
  CURSO: Compiladores e Intérpretes
- PROYECTO #2: Análisis Sintáctico
+ PROYECTO #3: Análisis Semántico
  ESTUDIANTES: Sebastián Sandí Blanco y Melany Bustos Cerdas
  ARCHIVO: Nodo.java
 
- OBJETIVO: Clase base para representar los nodos del Árbol Sintáctico.
- ENTRADA: Nombre del nodo y sus hijos.
+ OBJETIVO: Clase base para representar los nodos del Árbol Sintáctico y gestionar el análisis semántico..
+ ENTRADA: Nombre del nodo y sus hijos y datos requeridos para el análisis semántico.
  SALIDA: Estructura jerárquica del programa.
  */
 
@@ -18,6 +18,24 @@ public class Nodo {
     private String nombre;
     private TipoNodo tipo;
     private List<Nodo> hijos;
+    private String tipoDato;
+    private Integer valor; // para tamaños, columnas de arreglos.
+    
+ public void setTipoDato(String t) {
+        this.tipoDato = t;
+    }
+
+    public String getTipoDato() {
+        return tipoDato;
+    }
+
+    public void setValor(Integer v) {
+        this.valor = v;
+    }
+
+    public Integer getValor() {
+        return this.valor;
+    }
 
     // Códigos ANSI para colores
     public static final String RESET = "\u001B[0m";
