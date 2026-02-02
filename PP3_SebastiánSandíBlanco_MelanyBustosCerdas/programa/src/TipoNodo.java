@@ -2,7 +2,7 @@ package src;
 
 public enum TipoNodo {
     FLUJO,
-    DECLARACION,
+    ASIGNACION_GLOBAL,
     VARIABLE,
     CONSTANTE,
     OPERADOR,

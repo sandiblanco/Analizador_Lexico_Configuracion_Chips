@@ -36,6 +36,11 @@ public class InstruccionIntermedia {
                 lineaDeCodigo = argumento1 + " " + operador + " " + argumento2; //ejemplo x = t1
                 break;
 
+            //asignación GLOBAL
+            case "ASIGNACIÓN GLOBAL":
+                lineaDeCodigo = argumento1 + " " + "=" + " " + argumento2; //ejemplo x = t1
+                break;
+
             //casos donde son operaciones aritméticas
             case "+":
             case "-":
@@ -62,9 +67,12 @@ public class InstruccionIntermedia {
 
             //La instrucción final de la función
             case "FIN DE FUNCIÓN":
-                lineaDeCodigo = "_func_end";
+                lineaDeCodigo = "func end";
                 break;
 
+            case "FIN DE MAIN":
+                lineaDeCodigo = "_func_end:";
+                break;
             //Parámetro
             case "PARÁMETRO":
                 lineaDeCodigo = resultado + " = " + "param[" + argumento1 + "]";
@@ -87,7 +95,7 @@ public class InstruccionIntermedia {
                 break;
 
             case "MAIN":
-                lineaDeCodigo = "_func_begin_main:" + resultado;
+                lineaDeCodigo = "_func_begin_main:";
                 break;
 
             //SENTENCIA FOR

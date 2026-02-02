@@ -380,8 +380,8 @@ declaracionGlobal ::= WORLD tipo:t ID:i ENDL {:
                 );
             }
         //Árbol sintáctico
-            Nodo declaracionG = new Nodo("Declaración global con asignación: " + t + " " + i );
-		    Nodo assign = new Nodo("=", TipoNodo.ASIGNACION);
+            Nodo declaracionG = new Nodo("Declaración global con asignación: " + t + " " + i);
+		    Nodo assign = new Nodo("=", TipoNodo.ASIGNACION_GLOBAL);
 		    assign.agregarHijo(new Nodo(i.toString(), TipoNodo.VARIABLE));
 		    assign.agregarHijo(e);
 		    declaracionG.agregarHijo(assign);
@@ -902,7 +902,11 @@ sentenciaBreak ::= BREAK ENDL {:
 
 
 llamadaFuncion ::= ID:i LPAREN argumentos:a RPAREN {:
-                    Nodo n = new Nodo("Llamada a Función", TipoNodo.LLAMADA_FUNCION);
+
+                    Nodo funcionLlamada = new Nodo(i.toString(), TipoNodo.LLAMADA_FUNCION);
+                    Nodo n = new Nodo("Llamada a Función");
+
+
                     if (!datosFunciones.containsKey(i)) {
                         errorSemantico("Función '" + i + "' no declarada");
                         n.setTipoDato("error");
@@ -925,7 +929,8 @@ llamadaFuncion ::= ID:i LPAREN argumentos:a RPAREN {:
                             n.setTipoDato(datos.get(0)); // tipo retorno
                           }
                      }
-                    n.agregarHijo(a);
+                    funcionLlamada.agregarHijo(a);
+                    n.agregarHijo(funcionLlamada);
                     RESULT = n;
                   :}
 ;

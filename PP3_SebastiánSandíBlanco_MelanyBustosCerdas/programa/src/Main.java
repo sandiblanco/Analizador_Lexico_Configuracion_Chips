@@ -29,14 +29,14 @@ public class Main {
     private static final String archivoFuente = "lectura/archivoFuente.txt";
     private static final String archivoDeErrores = "lectura/pruebaErrores.txt";
     private static final String archivoSalida = "lectura/tokens_encontrados.txt";
-    private static final String codigoMIPS = "lectura/codigoMIPS.txt";
+    private static final String codigoMIPS = "lectura/codigoMIPS.asm";
 
     // Colores
     public static final String RESET = "\u001B[0m";
     public static final String YELLOW = "\u001B[33m";
     public static final String CYAN = "\u001B[36m";
     public static final String GREEN = "\u001B[32m";
-    static CodigoIntermedio intermedio = new CodigoIntermedio();
+    static CodigoIntermedio intermedio;
 
     public static void main(String[] args) throws Exception {
         menuOpciones();
@@ -156,6 +156,7 @@ public class Main {
             generados.parser p = new generados.parser(lexer);
 
             Nodo raiz = (Nodo) p.parse().value;
+            intermedio = new CodigoIntermedio();
 
             if (raiz != null)
                 intermedio.lecturaArbol(raiz);

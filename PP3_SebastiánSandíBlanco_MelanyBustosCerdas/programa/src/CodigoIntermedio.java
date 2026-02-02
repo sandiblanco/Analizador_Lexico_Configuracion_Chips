@@ -161,6 +161,14 @@ public class CodigoIntermedio {
                 instrucciones.add(instruccion);
                 return temporal;
 
+            case ASIGNACION_GLOBAL:
+                izquierda = lecturaArbol(nodo.getHijos().get(0));
+                derecha = lecturaArbol(nodo.getHijos().get(1));
+                temporal = generarTemporal();
+                instruccion = new InstruccionIntermedia("ASIGNACIÓN GLOBAL", izquierda, derecha, temporal);
+                instrucciones.add(instruccion);
+                return temporal;
+
             case NEGACION:
                 String expresion = lecturaArbol(nodo.getHijos().getFirst()); //obtener la expresión luego de la negación
                 temporal = generarTemporal();
@@ -200,7 +208,7 @@ public class CodigoIntermedio {
                 }
                 //Generar el CALL
                 temporal = generarTemporal();
-                instrucciones.add(new InstruccionIntermedia("CALL", ""+contadorArgumentos, "", nodo.getName()));
+                instrucciones.add(new InstruccionIntermedia("CALL", ""+contadorArgumentos, temporal, nodo.getName()));
                 return temporal;
 
             case RETURN:
@@ -214,7 +222,7 @@ public class CodigoIntermedio {
                 //_func_begin_main:
                 instrucciones.add(new InstruccionIntermedia("MAIN", "", "", ""));
                 lecturaArbol(bloque);
-                instrucciones.add(new InstruccionIntermedia("FIN DE FUNCIÓN", "", "", ""));
+                instrucciones.add(new InstruccionIntermedia("FIN DE MAIN", "", "", ""));
                 return "";
 
             case SHOW:
@@ -278,4 +286,7 @@ public class CodigoIntermedio {
         return temporal;
     }
 
+    public List<InstruccionIntermedia> getInstrucciones() {
+        return instrucciones;
+    }
 }
