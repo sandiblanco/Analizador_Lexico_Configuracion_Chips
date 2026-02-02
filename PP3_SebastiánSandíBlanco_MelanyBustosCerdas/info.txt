@@ -10,7 +10,7 @@ Tercer proyecto programado
 
 Fecha de entrega: 01/02/2026
 
-Estatus de la entrega: Excelente
+Estatus de la entrega: MuyBuena
 
 Enlace repositorio: https://github.com/sandiblanco/Analizador_Lexico_Configuracion_Chips/tree/main
 
